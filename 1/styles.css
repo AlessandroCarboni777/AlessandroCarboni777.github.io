@@ -1,0 +1,211 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0px;
+    overflow-y: scroll; /* Assicurati che la barra di scorrimento sia visibile */
+    margin-top: 10vh;
+}
+
+.navbar {
+    background-color: #333;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    left: 0; /* Aggiunto per posizionare la navbar all'estrema sinistra */
+    width: 100%; /* Imposta la larghezza al 100% */
+    display: flex;
+    justify-content: space-between; /* Distribuisci gli elementi */
+    align-items: center; /* Allinea verticalmente gli elementi */
+    z-index: 1000; /* Assicura che la navbar sia sempre sopra gli altri elementi */
+    margin-bottom: 20px;
+}
+
+.navbar-item,
+.home-button {
+    color: white; /* Colore del testo del pulsante */
+    text-decoration: none; /* Rimuovi la sottolineatura */
+    font-size: 18px; /* Dimensione del testo */
+    margin: 0 20px; /* Margine a destra e sinistra */
+    padding: 10px 15px; /* Spaziatura interna */
+    border-radius: 5px; /* Angoli arrotondati */
+    transition: background-color 0.3s; /* Transizione per il colore di sfondo */
+}
+
+.navbar-item:hover,
+.home-button:hover {
+    background-color: #257676; /* Colore al passaggio del mouse */
+}
+
+.navbar-logo {
+    width: 40px; /* Imposta la larghezza dell'immagine */
+    height: 40px; /* Imposta l'altezza dell'immagine per renderla piccola */
+    border-radius: 50%; /* Rende l'immagine rotonda */
+    margin-left: 20px; /* Spazio dal lato sinistro */
+    cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
+    border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
+}
+
+form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 60px auto 20px; /* Margine superiore per lasciare spazio alla navbar */
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+h2 {
+    text-align: center; /* Centra il titolo h2 */
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #309191;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    
+}
+
+button[type="submit"]:hover {
+    background-color: #2d8585;
+    transition: background-color 0.3s;
+}
+
+#results {
+    display: none;
+    background-color: #fff;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#results p {
+    font-size: 16px;
+    color: #333;
+    margin: 10px 0;
+}
+
+.graph-container {
+    display: flex;
+    justify-content: center;
+    gap: 0px; /* Imposta la distanza a 1px */
+    margin-top: 20px;
+    display: none; /* Nasconde inizialmente la grafica */
+}
+
+canvas {
+    border: 1px solid #000; /* Aggiungi un bordo per meglio visualizzare i grafici */
+    margin: 0 5px;
+}
+
+iframe {
+    margin: 20px 0;
+    border: 1px solid #ccc; 
+    width: 100%;
+}
+
+.average-column {
+    text-align: center; /* Centra il testo nella colonna media */
+    margin: 0 10px; /* Margine orizzontale ridotto */
+}
+
+#togglePDFButton {
+    display: block; /* Assicura che il bottone sia centrato */
+    margin: 20px auto; /* Centra il bottone */
+    padding: 10px 15px;
+    background-color: #257676;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    transform: scale(2);
+}
+
+#togglePDFButton:hover {
+    background-color: #1e5b5b;
+}
+
+.average-box {
+    position: absolute;
+    top: 10px; /* Sposta il box più in alto */
+    left: 10px; /* Sposta il box a sinistra */
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    font-size: 16px;
+    border: none; 
+    border-radius: 5px; /* Aggiungi un bordo arrotondato per un aspetto più morbido */
+    transform: translateX(50vh) translateY(5vh);
+}
+
+@media (max-width: 768px) {
+    form {
+        padding: 15px;
+        border-radius: 6px;
+    }
+
+    button[type="submit"] {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    #results p {
+        font-size: 14px;
+    }
+
+    .graph-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        max-width: 90%;
+    }
+
+    iframe {
+        width: 100%;
+    }
+}
+
+/* Stile per la barra di scorrimento */
+::-webkit-scrollbar {
+    width: 8px; /* Larghezza della barra di scorrimento */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #257676; /* Colore della parte scorrevole */
+    border-radius: 4px; /* Angoli arrotondati della parte scorrevole */
+}
+
+::-webkit-scrollbar-track {
+    background: #f4f4f4; /* Colore di sfondo della barra di scorrimento */
+}

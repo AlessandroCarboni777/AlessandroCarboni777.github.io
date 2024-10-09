@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carboni Alessandro - Homework 1</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <script>
+        function saveValues(event) {
+            event.preventDefault();
+
+            const numberOfServers = parseInt(document.getElementById('servers').value);
+            const numberOfAttackers = parseInt(document.getElementById('attackers').value);
+            const breachProbability = parseFloat(document.getElementById('breach').value);
+
+            if (breachProbability < 0 || breachProbability > 1) {
+                alert("Breach Probability must be between 0 and 1.");
+                return;
+            }
+
+            document.getElementById('results').style.display = 'block';
+            document.querySelector('.graph-container').style.display = 'flex'; // Show the graph section
+
+            document.getElementById('results').innerHTML = `
+                <p>Number of Servers: ${numberOfServers}</p>
+                <p>Number of Attackers: ${numberOfAttackers}</p>
+                <p>Breach Probability: ${breachProbability}</p>
+            `;
+
+            const breachesData = drawGraph(numberOfServers, numberOfAttackers, breachProbability);
+            drawHistogram(breachesData, numberOfServers);
+            displayAverage(breachesData); // Call to display average
+        }
+
+        function drawGraph(servers, attackers, probability) {
+            const canvas = document.getElementById('breachGraph');
+            const ctx = canvas.getContext('2d');
+        
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+            const margin = 100;
+            const width = canvas.width - margin * 2;
+            const height = canvas.height - margin * 2;
+        
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, height + margin);
+            ctx.lineTo(width + margin, height + margin);
+            ctx.stroke();
+        
+            // Remove axis labels
+            ctx.font = "16px Arial";
+            ctx.fillText("n", canvas.width - margin, height + margin + 40);
+            ctx.fillText("Breaches", margin - 40, margin - 20);
+        
+            // Draw X-axis labels (servers)
+            for (let i = 1; i <= servers; i++) {
+                const x = margin + (i / servers) * width;
+                ctx.fillText(i, x, height + margin + 15);
+            }
+        
+            // Define the Y-axis based on breaches
+            const yMax = servers; // This should match the number of breaches as per your requirements
+            const yStep = Math.ceil(yMax / 5);
+        
+            for (let i = 0; i <= yMax; i += yStep) {
+                const y = height + margin - (i / yMax) * height;
+                ctx.fillText(i, margin - 35, y);
+            }
+        
+            let breachesData = [];
+            for (let attacker = 1; attacker <= attackers; attacker++) {
+                let breaches = 0;
+        
+                ctx.beginPath();
+                ctx.moveTo(margin, height + margin);
+        
+                for (let i = 1; i <= servers; i++) {
+                    if (Math.random() < probability) {
+                        breaches++;
+                    }
+        
+                    const x = margin + (i / servers) * width;
+                    const y = height + margin - (breaches / yMax) * height; // Use yMax for scaling
+                    ctx.lineTo(x, y);
+                }
+        
+                breachesData.push(breaches);
+                ctx.strokeStyle = `hsl(${(attacker / attackers) * 360}, 100%, 50%)`;
+                ctx.stroke();
+            }
+        
+            return breachesData;
+        }
+
+        function drawHistogram(breachesData, servers) {
+            const histogramCanvas = document.getElementById('histogramGraph');
+            const histogramCtx = histogramCanvas.getContext('2d');
+        
+            histogramCtx.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
+        
+            const margin = 50; // Margin for the axes
+            const width = histogramCanvas.width - margin * 2; // Usable width
+            const height = histogramCanvas.height - margin * 2; // Usable height
+        
+            // Draw axes in black
+            histogramCtx.beginPath();
+            histogramCtx.moveTo(margin, margin);
+            histogramCtx.lineTo(margin, height + margin);
+            histogramCtx.lineTo(width + margin, height + margin);
+            histogramCtx.strokeStyle = '#000'; // Black color for axes
+            histogramCtx.stroke();
+            histogramCtx.closePath();
+        
+            const totalAttackers = breachesData.length;
+            const levelCounts = new Array(servers + 1).fill(0);
+        
+            breachesData.forEach(penetration => {
+                if (penetration >= 0 && penetration <= servers) {
+                    levelCounts[penetration]++;
+                }
+            });
+        
+            const barWidth = (width) / servers; // Calculate the width of the bars based on the number of servers
+        
+            for (let i = 0; i <= servers; i++) {
+                const frequencyRelative = levelCounts[i] / totalAttackers;
+                const barHeight = frequencyRelative * height; // Height based on frequency
+        
+                // Variable color for the bars as in the main graph
+                const hue = (i / servers) * 360; // Vary hue based on bar position
+                histogramCtx.fillStyle = `hsl(${hue}, 100%, 50%)`; // Colors as in the first graph
+        
+                // Draw the histogram bars vertically
+                histogramCtx.fillRect(margin + i * barWidth, height + margin - barHeight, barWidth - 5, barHeight); // Inverted height
+        
+                // Percentage and value text on the Y-axis
+                const percentageText = (frequencyRelative * 100).toFixed(2) + '%';
+                histogramCtx.fillStyle = '#000';
+                histogramCtx.fillText(percentageText, margin + i * barWidth + 5, height + margin - barHeight - 5);
+                histogramCtx.fillText(i, margin + i * barWidth + barWidth / 2 - 10, height + margin + 15); // Value on the X-axis
+            }
+        }
+
+        function displayAverage(breachesData) {
+            let average = 0;
+            let M_prev = 0; // Initialize M_{k-1}
+
+            // Calculate the average using the recursive formula
+            for (let k = 0; k < breachesData.length; k++) {
+                M_prev = average; // M_{k-1}
+                average += (breachesData[k] - M_prev) / (k + 1);
+            }
+
+            // Display the average below the graph
+            const averageDisplay = document.getElementById('averageDisplay');
+            averageDisplay.innerHTML = `
+                <h3 style="text-align: center;">Average Breaches</h3>
+                <p style="text-align: center;">${average.toFixed(2)}</p>
+            `;
+            averageDisplay.style.display = 'block'; // Ensure it's displayed
+        }
+
+        function togglePDF() {
+            const pdfSection = document.getElementById('pdfSection');
+            const toggleButton = document.getElementById('togglePDFButton');
+            if (pdfSection.style.display === 'none') {
+                pdfSection.style.display = 'block';
+                toggleButton.innerText = 'Hide PDF';
+            } else {
+                pdfSection.style.display = 'none';
+                toggleButton.innerText = 'Show PDF';
+            }
+        }
+
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <img src="foto.png" alt="Logo" class="navbar-logo"> <!-- Immagine a sinistra -->
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homeworks</a> <!-- Pulsante Homeworks -->
+            <a href="../index.html" class="home-button">Home</a> <!-- Pulsante Home -->
+        </div>
+    </nav>
+
+    <h1>Homework 1 - Carboni Alessandro</h1>
+
+    <h2>Practical Application</h2>
+    <form onsubmit="saveValues(event)">
+        <label for="servers">Number of Servers:</label>
+        <input type="number" id="servers" name="servers" required>
+        <br>
+
+        <label for="attackers">Number of Attackers:</label>
+        <input type="number" id="attackers" name="attackers" required>
+        <br>
+
+        <label for="breach">Breach Probability (between 0 and 1):</label>
+        <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" required>
+        <br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="results"></div> 
+
+    <div class="graph-container" style="display: none;"> <!-- Initially hidden -->
+        <canvas id="breachGraph" width="500" height="500"></canvas>
+        <canvas id="histogramGraph" width="500" height="500"></canvas>
+    </div>
+    
+    <div id="averageDisplay" style="text-align: center; margin-top: 20px; display: none;"></div> <!-- Average display section -->
+    <h2>Theoretical Notions</h2>
+    <div style="text-align: center;"> <!-- Centra il bottone -->
+        <button id="togglePDFButton" onclick="togglePDF()">Show PDF</button>
+    </div>
+    <div id="pdfSection" style="display: none;"> <!-- Inizialmente nascosto -->
+        <iframe src="Homework 1.pdf" width="400px" height="1000px"></iframe>
+    </div>
+</body>
+</html>

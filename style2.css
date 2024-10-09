@@ -1,0 +1,96 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.navbar {
+    background-color: #333;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    width: 100%; /* Imposta la larghezza al 100% */
+    display: flex;
+    justify-content: space-between; /* Distribuisci gli elementi */
+    align-items: center; /* Allinea verticalmente gli elementi */
+}
+
+.navbar-image {
+    width: 40px; /* Imposta la larghezza dell'immagine */
+    height: 40px; /* Imposta l'altezza dell'immagine per renderla piccola */
+    border-radius: 50%; /* Rende l'immagine rotonda */
+    margin-left: 20px; /* Spazio dal lato sinistro */
+    cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
+    border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del bottone Home */
+}
+
+.home-button {
+    color: white; /* Colore del testo del pulsante */
+    text-decoration: none; /* Rimuovi la sottolineatura */
+    font-size: 18px; /* Dimensione del testo */
+    margin-right: 20px; /* Margine a destra */
+    padding: 10px 15px; /* Spaziatura interna */
+    border-radius: 5px; /* Angoli arrotondati */
+    transition: background-color 0.3s; /* Transizione per il colore di sfondo */
+}
+
+.home-button:hover {
+    background-color: #257676; /* Colore al passaggio del mouse */
+}
+
+.content {
+    margin-top: 60px; /* Distanza dalla navbar */
+    display: flex; /* Usa flexbox per centrare il contenuto */
+    justify-content: center; /* Centra il box orizzontalmente */
+    align-items: flex-start; /* Allinea il box verso l'alto */
+    height: calc(100vh - 60px); /* Imposta l'altezza del contenuto al 100% meno la navbar */
+}
+
+.homework-box {
+    border-radius: 12px; /* Rende il box più stondato */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Ombra del box */
+    width: 300px; /* Larghezza del box */
+    margin-top: 20px; /* Distanza dal bordo superiore */
+    padding: 10px; /* Aggiunta di padding al box */
+}
+
+.homework-title {
+    color: #333; /* Colore del testo */
+    padding: 15px; /* Spaziatura interna */
+    text-align: center; /* Centra il testo */
+    font-size: 24px; /* Aumenta la dimensione del testo */
+    font-weight: bold; /* Rende il testo in grassetto */
+    color: #309191;
+    text-shadow: #333;
+}
+
+.homework-description {
+    background-color: white; /* Colore di sfondo per la descrizione */
+    color: black; /* Colore del testo */
+    padding: 2px; /* Spaziatura interna */
+    text-align: center; /* Centra il testo */
+    
+}
+
+.view-button {
+    display: block; /* Rende il pulsante un blocco per occupare l'intera larghezza */
+    text-align: center; /* Centra il testo */
+    margin-top: 10px; /* Margine superiore */
+    color: white; /* Colore del testo */
+    text-decoration: none; /* Rimuove la sottolineatura */
+    background-color: #309191; /* Colore di sfondo del pulsante */
+    padding: 10px; /* Spaziatura interna */
+    border-radius: 5px; /* Angoli arrotondati */
+    transition: background-color 0.3s; /* Transizione per il colore di sfondo */
+}
+
+.view-button:hover {
+    background-color: #257676; /* Colore al passaggio del mouse */
+}
+
+.homework-ex {
+    color: #333; /* Colore del testo */
+    padding: 15px; /* Spaziatura interna */
+    text-align: center; /* Centra il testo */
+    font-size: 16px; /* Aumenta la dimensione del testo */
+    font-weight: bold; /* Rende il testo in grassetto */
+}

@@ -1,50 +1,85 @@
+/* Personalizza la barra di scorrimento */
+::-webkit-scrollbar {
+    width: 8px; /* Riduci la larghezza della barra di scorrimento */
+}
+
+/* Colore del binario della barra di scorrimento */
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Colore di sfondo della traccia */
+    margin-top: 60px; /* Compensa la navbar */
+}
+
+/* Colore della barra di scorrimento */
+::-webkit-scrollbar-thumb {
+    background-color: #257676; /* Colore uguale al bordo dell'immagine del logo */
+    border-radius: 10px; /* Arrotonda la barra di scorrimento */
+    border: 2px solid #257676; /* Aggiungi un bordo per migliorare la visibilità */
+}
+
+/* Colore della barra di scorrimento al passaggio del mouse */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #1e5b5b; /* Colore più scuro al passaggio del mouse */
+}
+
+/* Corpo della pagina */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
-    padding: 0px;
+    padding: 0;
     overflow-y: scroll; /* Assicurati che la barra di scorrimento sia visibile */
-    margin-top: 10vh;
+    margin-top: 20vh; /* Compensa la navbar */
 }
 
+/* Navbar */
 .navbar {
     background-color: #333;
-    padding: 10px;
+    padding: 30px;
     position: fixed;
     top: 0;
-    left: 0; /* Aggiunto per posizionare la navbar all'estrema sinistra */
-    width: 100%; /* Imposta la larghezza al 100% */
+    left: 0;
+    width: 100%;
     display: flex;
-    justify-content: space-between; /* Distribuisci gli elementi */
-    align-items: center; /* Allinea verticalmente gli elementi */
-    z-index: 1000; /* Assicura che la navbar sia sempre sopra gli altri elementi */
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
     margin-bottom: 20px;
+}
+
+/* Logo della navbar */
+.navbar-logo {
+    width: 100px; /* Imposta la larghezza dell'immagine */
+    height: 100px; /* Imposta l'altezza dell'immagine */
+    border-radius: 50%; /* Rende l'immagine rotonda */
+    margin-left: 20px; /* Spazio dal lato sinistro */
+    cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
+    border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
 }
 
 .navbar-item,
 .home-button {
     color: white; /* Colore del testo del pulsante */
     text-decoration: none; /* Rimuovi la sottolineatura */
-    font-size: 18px; /* Dimensione del testo */
-    margin: 0 20px; /* Margine a destra e sinistra */
-    padding: 10px 15px; /* Spaziatura interna */
+    font-size: 30px; /* Dimensione del testo */
+    margin: 0 10px; /* Riduci il margine a destra per spostarli verso sinistra */
+    padding: 15px 20px; /* Aumenta la spaziatura interna */
     border-radius: 5px; /* Angoli arrotondati */
     transition: background-color 0.3s; /* Transizione per il colore di sfondo */
+    position: relative;
+    top: -10px; /* Sposta i bottoni leggermente più in alto */
 }
 
+
+/* Hover sui bottoni */
 .navbar-item:hover,
 .home-button:hover {
     background-color: #257676; /* Colore al passaggio del mouse */
 }
 
-.navbar-logo {
-    width: 40px; /* Imposta la larghezza dell'immagine */
-    height: 40px; /* Imposta l'altezza dell'immagine per renderla piccola */
-    border-radius: 50%; /* Rende l'immagine rotonda */
-    margin-left: 20px; /* Spazio dal lato sinistro */
-    cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
-    border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
+.navbar-links {
+    transform: translateX(-5vh);
 }
+
 form {
     background-color: #fff;
     padding: 20px;

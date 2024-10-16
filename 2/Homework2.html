@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carboni Alessandro - Homework 1</title>
     <link rel="stylesheet" href="styles.css"> 
+    <style>
+        body {
+            zoom: 80%; /* Imposta lo zoom della pagina all'80% */
+        }
+
+        .average-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border: 1px solid black;
+            font-size: 16px;
+        }
+
+        .graph-container {
+            position: relative; /* Necessario per posizionare l'average-box */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
     <script>
         let n = 0; // Numero di dati per la varianza
         let devSum = 0; // Somma delle deviazioni per il calcolo della varianza

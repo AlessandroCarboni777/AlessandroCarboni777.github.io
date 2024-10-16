@@ -8,25 +8,28 @@ body {
     padding: 10px;
     position: fixed;
     top: 0;
-    width: 100%; /* Imposta la larghezza al 100% */
+    left: 0;
+    width: 100%;
     display: flex;
-    justify-content: space-between; /* Distribuisci gli elementi */
-    align-items: center; /* Allinea verticalmente gli elementi */
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    margin-bottom: 20px;
 }
 
 .navbar-image {
-    width: 40px; /* Imposta la larghezza dell'immagine */
-    height: 40px; /* Imposta l'altezza dell'immagine per renderla piccola */
+    width: 70px; /* Imposta la larghezza dell'immagine */
+    height: 70px; /* Imposta l'altezza dell'immagine */
     border-radius: 50%; /* Rende l'immagine rotonda */
     margin-left: 20px; /* Spazio dal lato sinistro */
     cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
-    border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del bottone Home */
+    border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
 }
 
 .home-button {
     color: white; /* Colore del testo del pulsante */
     text-decoration: none; /* Rimuovi la sottolineatura */
-    font-size: 18px; /* Dimensione del testo */
+    font-size: 24px; /* Dimensione del testo */
     margin-right: 20px; /* Margine a destra */
     padding: 10px 15px; /* Spaziatura interna */
     border-radius: 5px; /* Angoli arrotondati */

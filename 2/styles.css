@@ -45,15 +45,27 @@ body {
     cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
     border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
 }
-
 form {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     max-width: 400px;
-    margin: 60px auto 20px; /* Margine superiore per lasciare spazio alla navbar */
+    margin: 60px auto 40px; /* Aumentato il margine inferiore per più distanza */
 }
+
+#results {
+    margin-top: 150px; /* Aumentato il margine superiore per separare di più dal form */
+    display: none;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
 
 h1 {
     text-align: center;
@@ -99,6 +111,7 @@ button[type="submit"]:hover {
 }
 
 #results {
+    margin: 5vh;
     display: none;
     background-color: #fff;
     padding: 20px;
@@ -166,5 +179,34 @@ iframe {
     font-size: 16px;
     border: none; 
     border-radius: 5px; /* Aggiungi un bordo arrotondato per un aspetto più morbido */
-    transform: translateX(50vh) translateY(5vh);
+    transform: translateX(185vh) translateY(5vh);
+}
+/* Centratura del menù a tendina */
+#frequencyType {
+    display: block;
+    margin: 0 auto;
+    width: 60%;
+    height: 34px;
+    font-size: 16px;
+}
+
+/* Centratura delle barre di scorrimento */
+#sliders {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Clearfix per il form */
+form::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Stile per il form */
+form {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
 }

@@ -38,12 +38,13 @@ body {
 }
 
 .content {
-    margin-top: 60px; /* Distanza dalla navbar */
-    display: flex; /* Usa flexbox per centrare il contenuto */
-    justify-content: center; /* Centra il box orizzontalmente */
-    align-items: flex-start; /* Allinea il box verso l'alto */
-    height: calc(100vh - 60px); /* Imposta l'altezza del contenuto al 100% meno la navbar */
+    margin-top: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* Rimuovi questa riga: height: calc(100vh - 60px); */
 }
+
 
 .homework-box {
     border-radius: 12px; /* Rende il box più stondato */
@@ -93,4 +94,27 @@ body {
     text-align: center; /* Centra il testo */
     font-size: 16px; /* Aumenta la dimensione del testo */
     font-weight: bold; /* Rende il testo in grassetto */
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Massimo 3 colonne, adattamento automatico */
+    justify-items: center; /* Centra i box in ciascuna colonna */
+    width: 70%; /* La griglia occupa il 70% della larghezza */
+    margin: 20vh auto 0 auto; /* Distanza di 20vh dall'alto e centrato orizzontalmente */
+    padding: 0 10px; /* Piccolo padding laterale per evitare che i box tocchino i bordi */
+}
+
+.homework-box {
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Ombra del box */
+    width: 300px; /* Larghezza fissa per ogni box */
+    padding: 10px; /* Padding interno al box */
+    box-shadow: #333;
+    transition: transform 0.5s ease; 
+}
+
+.homework-box:hover {
+    transform: scale(1.1);
+    transition: transform 0.5s ease; 
 }

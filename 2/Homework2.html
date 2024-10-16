@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carboni Alessandro - Homework 1</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <style>
+        body {
+            zoom: 80%; /* Imposta lo zoom della pagina all'80% */
+        }
+
+        .average-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border: 1px solid black;
+            font-size: 16px;
+        }
+
+        .graph-container {
+            position: relative; /* Necessario per posizionare l'average-box */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+    <script>
+        let n = 0; // Numero di dati per la varianza
+        let devSum = 0; // Somma delle deviazioni per il calcolo della varianza
+        let breachesData = []; // Array per memorizzare i dati delle violazioni
+        let average = 0; // Variabile per memorizzare la media dinamica
+        
+
+        // Funzione che mostra o nasconde le barre di scorrimento in base alla selezione
+    function toggleSliders() {
+        const frequencyType = document.getElementById('frequencyType').value;
+        const sliders = document.getElementById('sliders');
+        if (frequencyType === 'absolute') {
+            sliders.style.display = 'block';
+        } else {
+            sliders.style.display = 'none';
+        }
+    }
+
+    // Funzione per aggiornare il valore visualizzato del range
+    function updateMaxLabel(value) {
+        document.getElementById('maxLabel').textContent = value;
+    }
+
+    function updateMinLabel(value) {
+        document.getElementById('minLabel').textContent = value;
+    }
+
+    // Esegui la funzione all'avvio per mostrare le barre di scorrimento se necessario
+    window.onload = function() {
+        toggleSliders();
+    };
+
+        function saveValues(event) {
+            event.preventDefault();
+            
+            // Reset delle variabili
+            n = 0;
+            devSum = 0;
+            breachesData = [];
+            average = 0;
+        
+            const numberOfServers = parseInt(document.getElementById('servers').value);
+            const numberOfAttackers = parseInt(document.getElementById('attackers').value);
+            const breachProbability = parseFloat(document.getElementById('breach').value);
+        
+            if (breachProbability < 0 || breachProbability > 1) {
+                alert("Breach Probability deve essere compreso tra 0 e 1.");
+                return;
+            }
+        
+            document.querySelector('.graph-container').style.display = 'flex'; // Mostra la sezione del grafico
+        
+            // Controlla il valore del menù a tendina
+            const frequencyType = document.getElementById('frequencyType').value;
+            if (frequencyType === "absolute") {
+                drawCombinedGraph(numberOfServers, numberOfAttackers, breachProbability);
+            } else if (frequencyType === "relative") {
+                drawRelativeGraph(numberOfServers, numberOfAttackers, breachProbability);
+            }
+        }
+    
+    
+        function drawCombinedGraph(systems, attackers, probability) {
+            const canvas = document.getElementById('combinedGraph');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+            // Imposta sfondo nero
+            ctx.fillStyle = '#000'; // Nero
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+            const marginX = 50; 
+            const marginY = 30; 
+            const chartWidth = canvas.width - marginX * 2; 
+            const chartHeight = canvas.height - marginY * 2; 
+            const maxScoreX = canvas.width - marginX - (chartWidth * 0.25); 
+            const xStep = (maxScoreX - marginX) / systems; 
+        
+            const initialY = canvas.height / 2; 
+        
+            // Spessore degli assi
+            const axisThickness = 2; 
+            ctx.lineWidth = axisThickness; 
+        
+            // Disegna solo l'asse Y
+            ctx.beginPath();
+            ctx.moveTo(marginX, marginY);
+            ctx.lineTo(marginX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00'; // Colore bianco per l'asse Y
+            ctx.stroke();
+            ctx.closePath();
+        
+            // Calcola la posizione del secondo asse verticale
+            const randomSystemX = marginX + Math.floor(systems / 2) * xStep;
+        
+            // Disegna la linea centrale dell'asse X, che va dal primo asse Y fino alla terza linea verticale
+            ctx.beginPath();
+            ctx.moveTo(marginX, initialY);
+            ctx.lineTo(maxScoreX, initialY);
+            ctx.strokeStyle = '#f2ff00'; // Colore bianco per la linea centrale
+            ctx.lineWidth = axisThickness;
+            ctx.stroke();
+            ctx.closePath();
+        
+            // Disegna le linee verticali all'inizio degli istogrammi
+            // Linea verticale per il primo istogramma (alla fine dell'asse X)
+            ctx.beginPath();
+            ctx.moveTo(maxScoreX, marginY);
+            ctx.lineTo(maxScoreX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00'; // Colore bianco
+            ctx.lineWidth = axisThickness;
+            ctx.stroke();
+            ctx.closePath();
+        
+            // Linea verticale per il secondo istogramma (alla posizione randomLineT)
+            ctx.beginPath();
+            ctx.moveTo(randomSystemX, marginY);
+            ctx.lineTo(randomSystemX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00'; // Colore bianco
+            ctx.lineWidth = axisThickness;
+            ctx.stroke();
+            ctx.closePath();
+        
+            const penetrationData = [];
+            const penetrationDataTempoT = [];
+            const randomLineT = Math.floor(systems / 2);
+        
+            let attackerIndex = 0;
+        
+            function drawNextLine() {
+                if (attackerIndex >= attackers) {
+                    clearInterval(intervalID);
+                    return;
+                }
+        
+                let breaches = 0;
+                ctx.beginPath();
+                ctx.moveTo(marginX, initialY); 
+        
+                for (let j = 0; j <= systems; j++) {
+                    const penetrated = Math.random() < probability;
+        
+                    if (j === 0) {
+                        breaches = 0; 
+                    } else if (penetrated) {
+                        breaches += parseInt(document.getElementById('maxValue').value); // Successo
+                    } else {
+                        breaches -= parseInt(document.getElementById('minValue').value); // Fallimento
+                    }
+        
+                    breaches = Math.max(-systems, Math.min(systems, breaches)); 
+                    const y = initialY - (breaches * (chartHeight / (2 * systems))); 
+        
+                    ctx.lineTo(marginX + (j * xStep), y);
+        
+                    if (j === randomLineT) {
+                        penetrationDataTempoT.push(breaches);
+                    }
+                }
+        
+                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.closePath();
+        
+                breachesData.push(breaches);
+                penetrationData.push(breaches);
+        
+                // Aggiorna la media dinamicamente
+                average = updateAverage(breachesData);
+                document.getElementById('averageValue').textContent = average.toFixed(2); // Mostra la media aggiornata
+        
+                // Aggiorna la varianza quadratica
+                const variance = updateVariance(breaches);
+                document.getElementById('varianceBox').textContent = `Quadratic Variance: ${variance.toFixed(2)}`; // Mostra la varianza aggiornata
+        
+                attackerIndex++;
+        
+                // Aggiorna l'istogramma dopo ogni linea disegnata
+                drawHistogram(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight);
+                drawHistogramAtT(ctx, penetrationDataTempoT, systems, attackers, randomSystemX, initialY, chartHeight);
+            }
+        
+            // Disegna una nuova linea ogni 0.05 secondi
+            const intervalID = setInterval(drawNextLine, 50);
+        }
+
+        function drawRelativeGraph(systems, attackers, probability) {
+            const canvas = document.getElementById('combinedGraph');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+            // Set black background
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+            const marginX = 50;
+            const marginY = 30;
+            const chartWidth = canvas.width - marginX * 2;
+            const chartHeight = canvas.height - marginY * 2;
+            const maxScoreX = canvas.width - marginX - (chartWidth * 0.25);
+            const xStep = (maxScoreX - marginX) / systems;
+        
+            const initialY = canvas.height - marginY;
+        
+            // Draw axes
+            ctx.beginPath();
+            ctx.moveTo(marginX, marginY);
+            ctx.lineTo(marginX, canvas.height - marginY);
+            ctx.lineTo(canvas.width - marginX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00'; // Yellow for axes
+            ctx.stroke();
+            ctx.closePath();
+        
+            const randomLineT = Math.floor(systems / 2);
+            const penetrationData = [];
+            const penetrationDataTempoT = [];
+            const penetrationDataTempoTN = [];
+        
+            // Simulate attacks and collect penetration scores
+            for (let i = 0; i < attackers; i++) {
+                ctx.beginPath();
+                ctx.moveTo(marginX, initialY);
+                let successes = 0;
+        
+                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)'; // Purple with transparency for lines
+        
+                for (let j = 1; j <= systems; j++) {
+                    const penetrated = Math.random() < probability;
+        
+                    if (penetrated) {
+                        successes += 1;
+                    }
+        
+                    const relativeScore = successes / j;
+                    const y = initialY - (relativeScore * chartHeight);
+        
+                    if (j === randomLineT) {
+                        penetrationDataTempoT.push({ successes, y });
+                    }
+                    if (j === systems) {
+                        penetrationDataTempoTN.push({ successes, y });
+                    }
+        
+                    ctx.lineTo(marginX + ((j - 1) * xStep), y);
+                    ctx.lineTo(marginX + (j * xStep), y);
+                }
+        
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.closePath();
+        
+                penetrationData.push(successes);
+            }
+        
+            // Calculate mean and variance
+            const mean = penetrationData.reduce((acc, val) => acc + val, 0) / attackers;
+            const variance = penetrationData.reduce((acc, val) => acc + (val - mean) ** 2, 0) / attackers;
+        
+            // Display mean and variance
+            document.getElementById('averageValue').textContent = mean.toFixed(2);
+            document.getElementById('varianceBox').textContent = `Varianza Quadratica: ${variance.toFixed(2)}`;
+        
+            // Draw vertical line at system T
+            const randomSystemX = marginX + (randomLineT * xStep);
+            const finalSystemX = marginX + (systems * xStep); // X position for t_n
+            ctx.beginPath();
+            ctx.moveTo(randomSystemX, marginY);
+            ctx.lineTo(randomSystemX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00'; // Yellow for vertical line
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+        
+            // Draw vertical lines at the start and end
+            // Line at the start (beginning of the graph)
+            ctx.beginPath();
+            ctx.moveTo(marginX, marginY);
+            ctx.lineTo(marginX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00'; // Same color as the axes
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+        
+            // Line at the end (where new bars of the histogram start)
+            ctx.beginPath();
+            ctx.moveTo(finalSystemX, marginY);
+            ctx.lineTo(finalSystemX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00'; // Same color as the axes
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+        
+            // Draw horizontal histogram at time t
+            const totalAttackers = penetrationDataTempoT.length;
+            const levelCountsAtT = new Array(systems + 1).fill(0);
+        
+            penetrationDataTempoT.forEach(penetration => {
+                levelCountsAtT[penetration.successes] += 1;
+            });
+        
+            for (let i = 0; i <= systems; i++) {
+                const frequencyAbsolute = levelCountsAtT[i];
+                const frequencyRelative = frequencyAbsolute / totalAttackers;
+        
+                const y = penetrationDataTempoT.find(penetration => penetration.successes === i)?.y;
+        
+                if (y !== undefined) {
+                    ctx.beginPath();
+                    ctx.moveTo(randomSystemX, y);
+                    ctx.lineTo(randomSystemX + frequencyRelative * (chartWidth / 2), y);
+                    ctx.strokeStyle = '#f2ff00'; // Yellow for histogram bars
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+            }
+        
+            // Draw horizontal histogram at time t_n (final time)
+            const totalAttackersTN = penetrationDataTempoTN.length;
+            const levelCountsAtTN = new Array(systems + 1).fill(0);
+        
+            penetrationDataTempoTN.forEach(penetration => {
+                levelCountsAtTN[penetration.successes] += 1;
+            });
+        
+            for (let i = 0; i <= systems; i++) {
+                const frequencyAbsoluteTN = levelCountsAtTN[i];
+                const frequencyRelativeTN = frequencyAbsoluteTN / totalAttackersTN;
+        
+                const y = penetrationDataTempoTN.find(penetration => penetration.successes === i)?.y;
+        
+                if (y !== undefined) {
+                    ctx.beginPath();
+                    ctx.moveTo(finalSystemX, y); // New position for the t_n histogram
+                    ctx.lineTo(finalSystemX + frequencyRelativeTN * (chartWidth / 2), y); // Adjust length of bars
+                    ctx.strokeStyle = '#f2ff00'; // Green for second histogram
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+            }
+        }                
+
+    
+        function drawHistogram(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight) {
+            const totalLevels = 2 * systems; 
+            const levelCounts = new Array(totalLevels).fill(0);
+        
+            penetrationData.forEach(penetration => {
+                levelCounts[penetration + systems] += 1; 
+            });
+        
+            for (let i = -systems; i <= systems; i++) {
+                const frequencyAbsolute = levelCounts[i + systems]; 
+                const frequencyRelative = frequencyAbsolute / attackers; 
+        
+                const startY = initialY - (i * (chartHeight / (2 * systems))); 
+                const lineLength = Math.max(frequencyRelative * 300, 1); 
+        
+                ctx.beginPath();
+                ctx.moveTo(maxScoreX, startY);
+                ctx.lineTo(maxScoreX + lineLength, startY); 
+                ctx.strokeStyle = '#f2ff00'; // Colore giallo per le linee dell'istogramma
+                ctx.lineWidth = 4; 
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+        
+        
+    
+        function drawHistogramAtT(ctx, penetrationDataTempoT, systems, attackers, randomSystemX, initialY, chartHeight) {
+            const levelCounts2 = new Array(systems * 2 + 1).fill(0); 
+    
+            penetrationDataTempoT.forEach(penetration => {
+                levelCounts2[penetration + systems] += 1; 
+            });
+    
+            for (let i = -systems; i <= systems; i++) {
+                const frequencyAbsolute = levelCounts2[i + systems]; 
+                const frequencyRelative = frequencyAbsolute / attackers; 
+    
+                const startY = initialY - (i * (chartHeight / (2 * systems))); 
+                const lineLength = Math.max(frequencyRelative * 300, 1); 
+    
+                ctx.beginPath();
+                ctx.moveTo(randomSystemX, startY); 
+                ctx.lineTo(randomSystemX + lineLength, startY); 
+                ctx.strokeStyle = '#f2ff00'; 
+                ctx.lineWidth = 4; 
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+    
+        // Funzione per calcolare la media con la formula ricorsiva
+        function updateAverage(breachesData) {
+            let average = 0;
+            let M_prev = 0; // Inizializza M_{k-1}
+    
+            for (let k = 0; k < breachesData.length; k++) {
+                M_prev = average; // M_{k-1}
+                average += (breachesData[k] - M_prev) / (k + 1); // Formula ricorsiva per la media
+            }
+            return average;
+        }
+    
+        // Funzione per calcolare la varianza quadratica
+        function updateVariance(currentBreach) {
+            n++;
+            const delta = currentBreach - average;
+            devSum += delta * delta;
+            return devSum / n; 
+        }
+
+        function togglePDF() {
+            const pdfSection = document.getElementById('pdfSection');
+            const toggleButton = document.getElementById('togglePDFButton');
+            if (pdfSection.style.display === 'none') {
+                pdfSection.style.display = 'block';
+                toggleButton.innerText = 'Hide PDF';
+            } else {
+                pdfSection.style.display = 'none';
+                toggleButton.innerText = 'Show PDF';
+            }
+        }
+    </script>
+    
+</head>
+<body>
+    <nav class="navbar">
+        <img src="foto.png" alt="Logo" class="navbar-logo"> <!-- Immagine a sinistra -->
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a> <!-- Pulsante Homeworks -->
+            <a href="../index.html" class="home-button">Home</a> <!-- Pulsante Home -->
+        </div>
+    </nav>
+
+    <h1>Homework 2 - Carboni Alessandro</h1>
+
+    <h2>Practical Application</h2>
+    <form onsubmit="saveValues(event)">
+        <label for="servers">Number of Servers:</label>
+        <input type="number" id="servers" name="servers" required>
+        <br>
+    
+        <label for="attackers">Number of Attackers:</label>
+        <input type="number" id="attackers" name="attackers" required>
+        <br>
+    
+        <label for="breach">Breach Probability (between 0 and 1):</label>
+        <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" required>
+        <br>
+    
+        <!-- Menù a tendina per selezionare la frequenza -->
+        <select id="frequencyType" name="frequencyType" onchange="toggleSliders()" required>
+            <option value="absolute">Absolute Frequency</option>
+            <option value="relative">Relative Frequency</option>
+        </select>
+        <br>
+    
+        <!-- Barra di scorrimento per il valore max -->
+        <div id="sliders">
+            <label for="maxValue">Value for Success:</label>
+            <span id="minLabel">0</span>
+            <input type="range" id="maxValue" name="maxValue" min="0" max="1" value="1" oninput="updateMaxLabel(this.value)">
+            <span id="maxLabel">1</span>
+            <br>
+    
+            <!-- Barra di scorrimento per il valore min -->
+            <label for="minValue">Value for Failure:</label>
+            <span id="minLabel">0</span>
+            <input type="range" id="minValue" name="minValue" min="0" max="1" value="1" oninput="updateMinLabel(this.value)">
+            <span id="minLabel">1</span>
+            <br>
+        </div>
+    
+        <button type="submit">Submit</button>
+    </form>
+
+    <div class="graph-container" style="display: none;"> <!-- Initially hidden -->
+        <canvas id="combinedGraph" width="1600vh" height="600vh"></canvas>
+            <div class="average-box">
+                <p>Average: <span id="averageValue">0</span></p>
+                <p id="varianceBox">Quadratic Variance: 0</p>
+            </div>
+        </div>
+
+        <h2>Theoretical Notions</h2>
+        
+    <div style="text-align: center;">
+        <h2>(Download the PDF for a better experience)</h2>
+        <button id="togglePDFButton" onclick="togglePDF()">Show PDF</button>
+    </div>
+    <div id="pdfSection" style="display: none;"> <!-- Inizialmente nascosto -->
+        <iframe src="Homework 2.pdf" width="100%" height="1800vh"></iframe>
+
+    </div>
+</body>
+</html>

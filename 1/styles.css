@@ -201,5 +201,28 @@ iframe {
     font-size: 16px;
     border: none; 
     border-radius: 5px; /* Aggiungi un bordo arrotondato per un aspetto più morbido */
-    transform: translateX(60vh) translateY(5vh);
+    transform: translateX(200vh) translateY(5vh);
 }
+
+.drive-link {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .drive-link a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.5s ease;
+  }
+  
+  .drive-link a:hover {
+    background-color: #000000;
+    transition: background-color 0.5s ease;
+  }
+  

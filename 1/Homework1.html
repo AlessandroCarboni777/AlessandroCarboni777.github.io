@@ -50,6 +50,11 @@
             `;
 
             const breachesData = drawCombinedGraph(numberOfServers, numberOfAttackers, breachProbability, numberOfServers);
+
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
         }
 
         function drawCombinedGraph(servers, attackers, probability) {
@@ -247,10 +252,11 @@
 </head>
 <body>
     <nav class="navbar">
-        <img src="foto.png" alt="Logo" class="navbar-logo"> <!-- Immagine a sinistra -->
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo" > <!-- Immagine a sinistra -->
+        </a>
         <div class="navbar-links">
             <a href="../homeworks.html" class="navbar-item">Homework</a> <!-- Pulsante Homeworks -->
-            <a href="../index.html" class="home-button">Home</a> <!-- Pulsante Home -->
         </div>
     </nav>
 
@@ -282,13 +288,9 @@
             <p>0</p>
         </div>
     </div>
-    
-    <h2>Theoretical Notions</h2>
-    <div style="text-align: center;">
-        <button id="togglePDFButton" onclick="togglePDF()">Show PDF</button>
+    <div class="drive-link">
+        <a href="https://drive.google.com/file/d/1v8sstNR06aUJx_IQ0sR_3rztJkh0sDqm/view?usp=sharing" target="_blank">Theoretical Notions</a>
     </div>
-    <div id="pdfSection" style="display: none;"> <!-- Inizialmente nascosto -->
-        <iframe src="Homework 1.pdf" width="400px" height="1200px"></iframe>
-    </div>
+      
 </body>
 </html>

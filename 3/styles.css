@@ -245,6 +245,43 @@ form {
     margin: 0 auto;
 }
 
+#lambdaLabel {
+    margin-top: 10px;
+}
+
+#lambdaRange {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #257676;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+#lambdaRange:hover {
+    opacity: 1;
+}
+
+#lambdaRange::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #257676;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+#lambdaRange::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #123838;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
 .drive-link {
     text-align: center;
     margin-top: 10vh;
@@ -268,5 +305,3 @@ form {
     transition: background-color 0.5s ease;
   }
   
-
-

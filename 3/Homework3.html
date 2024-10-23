@@ -28,41 +28,65 @@
         }
     </style>
     <script>
-        let n = 0; // Numero di dati per la varianza
-        let devSum = 0; // Somma delle deviazioni per il calcolo della varianza
-        let breachesData = []; // Array per memorizzare i dati delle violazioni
-        let average = 0; // Variabile per memorizzare la media dinamica
-        
+        let n = 0;
+        let devSum = 0;
+        let breachesData = [];
+        let average = 0;
 
-        // Funzione che mostra o nasconde le barre di scorrimento in base alla selezione
-    function toggleSliders() {
-        const frequencyType = document.getElementById('frequencyType').value;
-        const sliders = document.getElementById('sliders');
-        if (frequencyType === 'absolute') {
-            sliders.style.display = 'block';
-        } else {
-            sliders.style.display = 'none';
+        function toggleDistributionType() {
+            const frequencyType = document.getElementById('frequencyType').value;
+            const lambdaLabel = document.getElementById('lambdaLabel');
+            const breachLabel = document.getElementById('breachLabel');
+            const breachInput = document.getElementById('breach');
+            const sliders = document.getElementById('sliders');
+            
+            if (frequencyType === 'poisson') {
+                breachLabel.style.display = 'none';
+                breachInput.removeAttribute('required'); // Rimuove l'obbligatorietà per Poisson
+                lambdaLabel.style.display = 'block';
+                sliders.style.display = 'block'; // Ora visibili anche per Poisson
+            } else {
+                breachLabel.style.display = 'block';
+                breachInput.setAttribute('required', 'required'); // Rende obbligatorio per le altre distribuzioni
+                lambdaLabel.style.display = 'none';
+                sliders.style.display = 'block'; 
+            }
         }
-    }
+    
+        function updateLambdaRange() {
+            const serversValue = document.getElementById('servers').value;
+            const lambdaInput = document.getElementById('lambdaRange');
+            lambdaInput.max = serversValue;
+            document.getElementById('lambdaMax').textContent = serversValue;
+            updateLambdaValue(lambdaInput.value);
+        }
 
-    // Funzione per aggiornare il valore visualizzato del range
-    function updateMaxLabel(value) {
-        document.getElementById('maxLabel').textContent = value;
-    }
+        function updateLambdaValue(value) {
+            document.getElementById('lambdaValue').textContent = value;
+        }
 
-    function updateMinLabel(value) {
-        document.getElementById('minLabel').textContent = value;
-    }
+        window.onload = function() {
+            toggleSliders();
+            toggleDistributionType();
+            updateLambdaRange();
+        };
 
-    // Esegui la funzione all'avvio per mostrare le barre di scorrimento se necessario
-    window.onload = function() {
-        toggleSliders();
-    };
+        function toggleSliders() {
+            const sliders = document.getElementById('sliders');
+            sliders.style.display = 'block'; // Assicura che gli slider siano sempre visibili
+        }
+
+        function updateMaxLabel(value) {
+            document.getElementById('maxLabel').textContent = value;
+        }
+
+        function updateMinLabel(value) {
+            document.getElementById('minLabel').textContent = value;
+        }
 
         function saveValues(event) {
             event.preventDefault();
             
-            // Reset delle variabili
             n = 0;
             devSum = 0;
             breachesData = [];
@@ -70,29 +94,38 @@
         
             const numberOfServers = parseInt(document.getElementById('servers').value);
             const numberOfAttackers = parseInt(document.getElementById('attackers').value);
+            const lambda = parseFloat(document.getElementById('lambdaRange').value);
             const breachProbability = parseFloat(document.getElementById('breach').value);
         
-            if (breachProbability < 0 || breachProbability > 1) {
-                alert("Breach Probability deve essere compreso tra 0 e 1.");
-                return;
-            }
-        
-            document.querySelector('.graph-container').style.display = 'flex'; // Mostra la sezione del grafico
-        
-            // Controlla il valore del menù a tendina
+            let probability;
+
             const frequencyType = document.getElementById('frequencyType').value;
-            if (frequencyType === "absolute") {
-                drawCombinedGraph(numberOfServers, numberOfAttackers, breachProbability);
-            } else if (frequencyType === "relative") {
-                drawRelativeGraph(numberOfServers, numberOfAttackers, breachProbability);
+            if (frequencyType === 'poisson') {
+                // Se Poisson, calcola la probabilità come λ / n.servers
+                probability = lambda / numberOfServers;
+                drawCombinedGraphP(numberOfServers, numberOfAttackers, probability);
+            } else if (frequencyType === 'absolute' || frequencyType === 'relative') {
+                if (isNaN(breachProbability)) {
+                    alert('Please insert a valid Breach Probability');
+                    return;
+                }
+                probability = breachProbability;
+                if (frequencyType === 'absolute') {
+                    drawCombinedGraph(numberOfServers, numberOfAttackers, probability);
+                } else {
+                    drawRelativeGraph(numberOfServers, numberOfAttackers, probability);
+                }
             }
+
+            // Mostra la sezione del grafico dopo aver inserito i dati
+            document.querySelector('.graph-container').style.display = 'flex';
 
             window.scrollTo({
                 top: document.body.scrollHeight,
                 behavior: 'smooth'
             });
-        }
-    
+        
+        }    
     
         function drawCombinedGraph(systems, attackers, probability) {
             const canvas = document.getElementById('combinedGraph');
@@ -374,7 +407,116 @@
                     ctx.closePath();
                 }
             }
-        }                
+        }   
+        
+        function drawCombinedGraphP(systems, attackers, probability) {
+            const canvas = document.getElementById('combinedGraph');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const marginX = 50; 
+            const marginY = 30; 
+            const chartWidth = canvas.width - marginX * 2; 
+            const chartHeight = canvas.height - marginY * 2; 
+            const maxScoreX = canvas.width - marginX - (chartWidth * 0.25); 
+            const xStep = (maxScoreX - marginX) / systems; 
+            const initialY = canvas.height / 2; 
+            const axisThickness = 2; 
+            ctx.lineWidth = axisThickness; 
+
+            ctx.beginPath();
+            ctx.moveTo(marginX, marginY);
+            ctx.lineTo(marginX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00';
+            ctx.stroke();
+            ctx.closePath();
+
+            const randomSystemX = marginX + Math.floor(systems / 2) * xStep;
+            ctx.beginPath();
+            ctx.moveTo(marginX, initialY);
+            ctx.lineTo(maxScoreX, initialY);
+            ctx.strokeStyle = '#f2ff00';
+            ctx.lineWidth = axisThickness;
+            ctx.stroke();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.moveTo(maxScoreX, marginY);
+            ctx.lineTo(maxScoreX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00';
+            ctx.lineWidth = axisThickness;
+            ctx.stroke();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.moveTo(randomSystemX, marginY);
+            ctx.lineTo(randomSystemX, canvas.height - marginY);
+            ctx.strokeStyle = '#f2ff00';
+            ctx.lineWidth = axisThickness;
+            ctx.stroke();
+            ctx.closePath();
+
+            const penetrationData = [];
+            const penetrationDataTempoT = [];
+            const randomLineT = Math.floor(systems / 2);
+            let attackerIndex = 0;
+
+            function drawNextLine() {
+                if (attackerIndex >= attackers) {
+                    clearInterval(intervalID);
+                    return;
+                }
+
+                let breaches = 0;
+                ctx.beginPath();
+                ctx.moveTo(marginX, initialY); 
+
+                for (let j = 0; j <= systems; j++) {
+                    const penetrated = Math.random() < probability;
+
+                    if (j === 0) {
+                        breaches = 0; 
+                    } else if (penetrated) {
+                        breaches += parseInt(document.getElementById('maxValue').value); // Successo
+                    } else {
+                        breaches -= parseInt(document.getElementById('minValue').value); // Fallimento
+                    }
+
+                    breaches = Math.max(-systems, Math.min(systems, breaches)); 
+                    const y = initialY - (breaches * (chartHeight / (2 * systems))); 
+
+                    ctx.lineTo(marginX + (j * xStep), y);
+
+                    if (j === randomLineT) {
+                        penetrationDataTempoT.push(breaches);
+                    }
+                }
+
+                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.closePath();
+
+                breachesData.push(breaches);
+                penetrationData.push(breaches);
+
+                average = updateAverage(breachesData);
+                document.getElementById('averageValue').textContent = average.toFixed(2);
+
+                const variance = updateVariance(breaches);
+                document.getElementById('varianceBox').textContent = `Quadratic Variance: ${variance.toFixed(2)}`;
+
+                attackerIndex++;
+
+                drawHistogram(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight);
+                drawHistogramAtT(ctx, penetrationDataTempoT, systems, attackers, randomSystemX, initialY, chartHeight);
+            }
+
+            const intervalID = setInterval(drawNextLine, 50);
+        }
 
     
         function drawHistogram(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight) {
@@ -472,33 +614,47 @@
         </div>
     </nav>
 
-    <h1>Homework 2 - Carboni Alessandro</h1>
+    <h1>Homework 3 - Carboni Alessandro</h1>
 
     <h2>Practical Application</h2>
     <form onsubmit="saveValues(event)">
+        <!-- Numero di Server -->
         <label for="servers">Number of Servers:</label>
-        <input type="number" id="servers" name="servers" required>
+        <input type="number" id="servers" name="servers" required oninput="updateLambdaRange()">
         <br>
     
+        <!-- Numero di Attaccanti -->
         <label for="attackers">Number of Attackers:</label>
         <input type="number" id="attackers" name="attackers" required>
         <br>
     
-        <label for="breach">Breach Probability (between 0 and 1):</label>
-        <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" required>
-        <br>
+        <!-- Label per la distribuzione di Breach (sarà nascosto per Poisson) -->
+        <div id="breachLabel">
+            <label for="breach">Breach Probability (between 0 and 1):</label>
+            <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" required>
+            <br>
+        </div>
     
-        <!-- Menù a tendina per selezionare la frequenza -->
-        <select id="frequencyType" name="frequencyType" onchange="toggleSliders()" required>
+        <!-- Barra di scorrimento per il valore di lambda -->
+        <div id="lambdaLabel" style="display: none;">
+            <label for="lambda">λ (between 1 and <span id="lambdaMax">1</span>):</label>
+            <input type="range" id="lambdaRange" name="lambda" min="1" max="1" value="1" oninput="updateLambdaValue(this.value)">
+            <span id="lambdaValue">1</span>
+            <br>
+        </div>
+    
+        <!-- Menù a tendina per selezionare la distribuzione -->
+        <select id="frequencyType" name="frequencyType" onchange="toggleDistributionType()" required>
             <option value="absolute">Absolute Frequency</option>
             <option value="relative">Relative Frequency</option>
+            <option value="poisson">Poisson Distribution</option>
         </select>
         <br>
     
         <!-- Barra di scorrimento per il valore max -->
         <div id="sliders">
             <label for="maxValue">Value for Success:</label>
-            <span id="maxLabel">0</span>
+            <span id="minLabel">0</span>
             <input type="range" id="maxValue" name="maxValue" min="0" max="1" value="1" oninput="updateMaxLabel(this.value)">
             <span id="maxLabel">1</span>
             <br>
@@ -513,6 +669,7 @@
     
         <button type="submit">Submit</button>
     </form>
+    
 
     <div class="graph-container" style="display: none;"> <!-- Initially hidden -->
         <canvas id="combinedGraph" width="1600vh" height="600vh"></canvas>
@@ -523,7 +680,7 @@
     </div>
 
     <div class="drive-link">
-        <a href="https://drive.google.com/file/d/1owB-r5zCeDyup1f3KNf3EplVv4FGv6ax/view?usp=sharing" target="_blank">Theoretical Notions</a>
+        <a href="https://drive.google.com/file/d/1caMMkW9tsRfml7pwlAmsz11CQWzh_wFT/view?usp=sharing" target="_blank">Theoretical Notions</a>
     </div>
 </body>
 </html>

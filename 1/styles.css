@@ -206,7 +206,8 @@ iframe {
 
 .drive-link {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10vh;
+    margin-bottom: 10vh;
   }
   
   .drive-link a {

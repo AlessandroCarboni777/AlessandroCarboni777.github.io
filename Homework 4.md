@@ -74,4 +74,4 @@ In this section we can see graphical differences between a classic random walk a
 ![[Pasted image 20241029190939.png|700]]
 ![[Pasted image 20241029190920.png|700]]
 
-As we can see, the variance in the second case is smaller than the variance in the first graph. This is due to the scaling effect predicted by the Donsker's distribution.
+As we can see, the variance in the second case is smaller than the variance in the first graph. This is due to the scaling effect predicted by the Donsker distribution.

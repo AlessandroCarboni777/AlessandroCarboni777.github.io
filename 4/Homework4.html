@@ -42,21 +42,27 @@
         
             if (frequencyType === 'poisson') {
                 breachLabel.style.display = 'none';
-                breachInput.removeAttribute('required'); // Rimuove l'obbligatorietà per Poisson
+                breachInput.removeAttribute('required');
                 lambdaLabel.style.display = 'block';
-                sliders.style.display = 'block'; // Ora visibili anche per Poisson
+                sliders.style.display = 'block';
             } else if (frequencyType === 'brownian') {
-                sliders.style.display = 'none'; // Nasconde gli slider per Brownian
+                sliders.style.display = 'none';
                 breachLabel.style.display = 'block';
                 breachInput.setAttribute('required', 'required');
                 lambdaLabel.style.display = 'none';
+            } else if (frequencyType === 'relative') {
+                breachLabel.style.display = 'block';
+                breachInput.setAttribute('required', 'required');
+                lambdaLabel.style.display = 'none';
+                sliders.style.display = 'none'; // Hide sliders for relative frequency
             } else {
                 breachLabel.style.display = 'block';
-                breachInput.setAttribute('required', 'required'); // Rende obbligatorio per le altre distribuzioni
+                breachInput.setAttribute('required', 'required');
                 lambdaLabel.style.display = 'none';
-                sliders.style.display = 'block'; 
+                sliders.style.display = 'block';
             }
         }
+        
         
     
         function updateLambdaRange() {
@@ -166,6 +172,22 @@
             ctx.stroke();
             ctx.closePath();
         
+            // Aggiungi le etichette sull'asse Y
+            ctx.fillStyle = '#f2ff00'; // Colore del testo
+            ctx.font = '16px Arial'; // Imposta il font per le etichette
+            ctx.textAlign = 'right';
+
+            // Recupera il numero effettivo di servers dall'elemento con id "servers"
+            const numberOfServers = parseInt(document.getElementById('servers').value);
+
+            // Etichetta in cima
+            ctx.fillText(numberOfServers, marginX + 40, marginY + 10);
+            // Etichetta al centro
+            ctx.fillText('0', marginX - 10, initialY+5);
+            // Etichetta in basso
+            ctx.fillText(`-${numberOfServers}`, marginX + 40, canvas.height - marginY);
+
+        
             // Calcola la posizione del secondo asse verticale
             const randomSystemX = marginX + Math.floor(systems / 2) * xStep;
         
@@ -260,6 +282,7 @@
             // Disegna una nuova linea ogni 0.05 secondi
             const intervalID = setInterval(drawNextLine, 50);
         }
+        
 
         function drawRelativeGraph(systems, attackers, probability) {
             const canvas = document.getElementById('combinedGraph');
@@ -287,6 +310,15 @@
             ctx.strokeStyle = '#f2ff00'; // Yellow for axes
             ctx.stroke();
             ctx.closePath();
+
+            ctx.fillStyle = '#f2ff00'; // Colore del testo
+            ctx.font = '16px Arial'; // Imposta il font per le etichette
+            ctx.textAlign = 'right';
+
+            // Etichetta in cima
+            ctx.fillText("1", marginX - 20, marginY + 10);
+            // Etichetta in basso
+            ctx.fillText("-1", marginX -20, canvas.height - marginY);
         
             const randomLineT = Math.floor(systems / 2);
             const penetrationData = [];
@@ -443,6 +475,22 @@
             ctx.stroke();
             ctx.closePath();
 
+            // Aggiungi le etichette sull'asse Y
+            ctx.fillStyle = '#f2ff00'; // Colore del testo
+            ctx.font = '16px Arial'; // Imposta il font per le etichette
+            ctx.textAlign = 'right';
+
+            // Recupera il numero effettivo di servers dall'elemento con id "servers"
+            const numberOfServers = parseInt(document.getElementById('servers').value);
+
+            // Etichetta in cima
+            ctx.fillText(numberOfServers, marginX + 40, marginY + 10);
+            // Etichetta al centro
+            ctx.fillText('0', marginX - 10, initialY+5);
+            // Etichetta in basso
+            ctx.fillText(`-${numberOfServers}`, marginX + 40, canvas.height - marginY);
+
+
             const randomSystemX = marginX + Math.floor(systems / 2) * xStep;
             ctx.beginPath();
             ctx.moveTo(marginX, initialY);
@@ -543,6 +591,7 @@
             const xStep = (maxScoreX - marginX) / systems;
         
             const initialY = canvas.height / 2;
+            const maxBreaches = Math.sqrt(systems);
         
             const axisThickness = 2;
             ctx.lineWidth = axisThickness;
@@ -553,6 +602,18 @@
             ctx.strokeStyle = '#f2ff00';
             ctx.stroke();
             ctx.closePath();
+        
+            // Aggiungi le etichette sull'asse Y
+            ctx.fillStyle = '#f2ff00';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'right';
+        
+            // Etichetta in cima
+            ctx.fillText(maxBreaches.toFixed(2), marginX + 55, marginY + 10);
+            // Etichetta al centro
+            ctx.fillText('0', marginX - 10, initialY+5);
+            // Etichetta in basso
+            ctx.fillText(`-${maxBreaches.toFixed(2)}`, marginX + 55, canvas.height - marginY);
         
             const randomSystemX = marginX + Math.floor(systems / 2) * xStep;
         
@@ -594,22 +655,22 @@
         
                 let breaches = 0;
                 ctx.beginPath();
-                ctx.moveTo(marginX, initialY); 
+                ctx.moveTo(marginX, initialY);
         
                 for (let j = 0; j <= systems; j++) {
                     const penetrated = Math.random() < probability;
                     const adjustment = 1 / Math.sqrt(systems);
-                    
+        
                     if (j === 0) {
-                        breaches = 0; 
+                        breaches = 0;
                     } else if (penetrated) {
                         breaches += adjustment;
                     } else {
                         breaches -= adjustment;
                     }
         
-                    breaches = Math.max(-systems, Math.min(systems, breaches)); 
-                    const y = initialY - (breaches * (chartHeight / (2 * systems))); 
+                    breaches = Math.max(-maxBreaches, Math.min(maxBreaches, breaches));
+                    const y = initialY - (breaches * (chartHeight / (2 * maxBreaches)));
         
                     ctx.lineTo(marginX + (j * xStep), y);
         
@@ -634,12 +695,13 @@
         
                 attackerIndex++;
         
-                drawHistogramD(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight);
-                drawHistogramAtTforD(ctx, penetrationDataTempoT, systems, attackers, randomSystemX, initialY, chartHeight);
+                drawHistogramD(ctx, penetrationData, maxBreaches, attackers, marginX, maxScoreX, initialY, chartHeight);
+                drawHistogramAtTforD(ctx, penetrationDataTempoT, maxBreaches, attackers, randomSystemX, initialY, chartHeight);
             }
         
             const intervalID = setInterval(drawNextLine, 50);
         }
+        
         
         function drawHistogram(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight) {
             const totalLevels = 2 * systems; 
@@ -693,56 +755,57 @@
         }
 
         function drawHistogramD(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight) {
-            const totalLevels = 2 * systems;
-            const levelCounts = new Array(totalLevels).fill(0);
+            const levelCounts = {};
         
             penetrationData.forEach(penetration => {
-                const index = Math.round(penetration * (totalLevels / (2 * systems)) + systems);
-                levelCounts[index] += 1;
+                const y = initialY - (penetration * (chartHeight / (2 * systems)));
+                if (!levelCounts[y]) {
+                    levelCounts[y] = 0;
+                }
+                levelCounts[y] += 1;
             });
         
-            for (let i = -systems; i <= systems; i++) {
-                const frequencyAbsolute = levelCounts[Math.round(i * (totalLevels / (2 * systems)) + systems)];
+            Object.keys(levelCounts).forEach(y => {
+                const frequencyAbsolute = levelCounts[y];
                 const frequencyRelative = frequencyAbsolute / attackers;
-        
-                const startY = initialY - (i * (chartHeight / (2 * systems)));
                 const lineLength = Math.max(frequencyRelative * 300, 1);
         
                 ctx.beginPath();
-                ctx.moveTo(maxScoreX, startY);
-                ctx.lineTo(maxScoreX + lineLength, startY);
+                ctx.moveTo(maxScoreX, parseFloat(y));  // Ensure y is a precise float for placement
+                ctx.lineTo(maxScoreX + lineLength, parseFloat(y));
                 ctx.strokeStyle = '#f2ff00';
                 ctx.lineWidth = 4;
                 ctx.stroke();
                 ctx.closePath();
-            }
+            });
         }
         
         function drawHistogramAtTforD(ctx, penetrationDataTempoT, systems, attackers, randomSystemX, initialY, chartHeight) {
-            const totalLevels = 2 * systems;
-            const levelCounts2 = new Array(totalLevels).fill(0);
+            const levelCounts = {};
         
             penetrationDataTempoT.forEach(penetration => {
-                const index = Math.round(penetration * (totalLevels / (2 * systems)) + systems);
-                levelCounts2[index] += 1;
+                const y = initialY - (penetration * (chartHeight / (2 * systems)));
+                if (!levelCounts[y]) {
+                    levelCounts[y] = 0;
+                }
+                levelCounts[y] += 1;
             });
         
-            for (let i = -systems; i <= systems; i++) {
-                const frequencyAbsolute = levelCounts2[Math.round(i * (totalLevels / (2 * systems)) + systems)];
+            Object.keys(levelCounts).forEach(y => {
+                const frequencyAbsolute = levelCounts[y];
                 const frequencyRelative = frequencyAbsolute / attackers;
-        
-                const startY = initialY - (i * (chartHeight / (2 * systems)));
                 const lineLength = Math.max(frequencyRelative * 300, 1);
         
                 ctx.beginPath();
-                ctx.moveTo(randomSystemX, startY);
-                ctx.lineTo(randomSystemX + lineLength, startY);
+                ctx.moveTo(randomSystemX, parseFloat(y));  // Ensure y is a precise float for placement
+                ctx.lineTo(randomSystemX + lineLength, parseFloat(y));
                 ctx.strokeStyle = '#f2ff00';
                 ctx.lineWidth = 4;
                 ctx.stroke();
                 ctx.closePath();
-            }
+            });
         }
+        
     
         // Funzione per calcolare la media con la formula ricorsiva
         function updateAverage(breachesData) {

@@ -291,7 +291,7 @@ form {
   .drive-link a {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #333;
+    background-color: #309191;
     color: white;
     text-decoration: none;
     border-radius: 5px;
@@ -301,7 +301,7 @@ form {
   }
   
   .drive-link a:hover {
-    background-color: #000000;
+    background-color: #2d8585;
     transition: background-color 0.5s ease;
   }
   

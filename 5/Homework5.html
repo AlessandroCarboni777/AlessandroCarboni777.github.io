@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carboni Alessandro - Homework 1</title>
+    <link rel="stylesheet" href="styles.css"> 
+
+    <script>
+
+        function drawGraph() {
+            const numPoints = document.getElementById("points").value || 100;
+            const xValues = [];
+            const yValues = [];
+            
+            // Generate random points
+            for (let i = 0; i < numPoints; i++) {
+                const x = Math.random() * 10;
+                const y = 0.5 * x + Math.random() * 2; // Adjust slope and randomness here
+                xValues.push(x);
+                yValues.push(y);
+            }
+        
+            // Calculate linear regression coefficients
+            const xMean = xValues.reduce((sum, val) => sum + val, 0) / numPoints;
+            const yMean = yValues.reduce((sum, val) => sum + val, 0) / numPoints;
+            const numerator = xValues.reduce((sum, x, i) => sum + (x - xMean) * (yValues[i] - yMean), 0);
+            const denominator = xValues.reduce((sum, x) => sum + (x - xMean) ** 2, 0);
+            const slope = numerator / denominator;
+            const intercept = yMean - slope * xMean;
+        
+            // Show the graph container
+            const graphContainer = document.querySelector(".graph-container");
+            graphContainer.style.display = "block";
+        
+            // Draw the scatter plot and regression line
+            const canvas = document.getElementById("combinedGraph");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+            // Set background to black
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+            // Define padding and effective drawing area
+            const padding = 50;
+            const effectiveWidth = canvas.width - padding * 2;
+            const effectiveHeight = canvas.height - padding * 2;
+        
+            // Draw axes with thicker lines
+            ctx.strokeStyle = "#f2ff00";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            // X-axis
+            ctx.moveTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            
+            // Y-axis
+            ctx.moveTo(padding, canvas.height - padding);
+            ctx.lineTo(padding, padding);
+            ctx.stroke();
+        
+            // Draw arrowheads for the axes
+            const arrowSize = 10;
+            
+            // X-axis arrow
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding - arrowSize, canvas.height - padding - arrowSize / 2);
+            ctx.lineTo(canvas.width - padding - arrowSize, canvas.height - padding + arrowSize / 2);
+            ctx.closePath();
+            ctx.fillStyle = "#f2ff00";
+            ctx.fill();
+        
+            // Y-axis arrow
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding - arrowSize / 2, padding + arrowSize);
+            ctx.lineTo(padding + arrowSize / 2, padding + arrowSize);
+            ctx.closePath();
+            ctx.fill();
+        
+            // Add labels for the X and Y axes
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#f2ff00";
+            ctx.fillText("X", canvas.width - padding + 15, canvas.height - padding + 5); // X-axis label
+            ctx.fillText("Y", padding - 5, padding - 10); // Y-axis label
+            
+            // Add label "O" at the origin
+            ctx.fillText("O", padding - 18, canvas.height - padding + 18);
+        
+            // Draw points within the padded area
+            ctx.fillStyle = "rgba(244, 39, 255, 1)";
+            ctx.lineWidth = 1;
+            xValues.forEach((x, i) => {
+                const px = padding + (x / 10) * effectiveWidth;
+                const py = canvas.height - (padding + (yValues[i] / 10) * effectiveHeight);
+                ctx.beginPath();
+                ctx.arc(px, py, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        
+            // Draw regression line within the padded area, ensuring it starts from the origin
+            ctx.strokeStyle = "#f2ff00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const xStart = 0;
+            const yStart = slope * xStart + intercept;
+            const xEnd = 10;
+            const yEnd = slope * xEnd + intercept;
+        
+            ctx.moveTo(
+                padding + (xStart / 10) * effectiveWidth,
+                canvas.height - (padding + (yStart / 10) * effectiveHeight)
+            );
+            ctx.lineTo(
+                padding + (xEnd / 10) * effectiveWidth,
+                canvas.height - (padding + (yEnd / 10) * effectiveHeight)
+            );
+            ctx.stroke();
+        }
+        
+        
+
+    </script>
+
+
+</head>
+<body>
+    <nav class="navbar">
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
+        </a>
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
+        </div>
+    </nav>
+
+    <h1>Homework 5 - Carboni Alessandro</h1>
+    <h2>Practical Application</h2>
+    <form onsubmit="event.preventDefault(); drawGraph();">
+        <label for="points">Number of Points</label>
+        <input type="number" id="points" name="points" min="2" max="1000" required>
+        <button type="submit">Draw Graph</button>
+    </form>
+
+    <div class="graph-container" style="display: none; text-align: center;">
+        <canvas id="combinedGraph" width="1000" height="500" style="margin: auto;"></canvas>
+    </div>
+    
+
+    <div class="drive-link">
+        <a href="https://drive.google.com/file/d/1T5guY5v7_wPz2Gwo1PWvySDI_MkNpitj/view?usp=sharing" target="_blank">Theoretical Notions</a>
+    </div>
+</body>
+</html>

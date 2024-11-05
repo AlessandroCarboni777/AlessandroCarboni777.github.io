@@ -1,0 +1,321 @@
+/* Personalizza la barra di scorrimento */
+::-webkit-scrollbar {
+    width: 8px; /* Riduci la larghezza della barra di scorrimento */
+}
+
+/* Colore del binario della barra di scorrimento */
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Colore di sfondo della traccia */
+    margin-top: 60px; /* Compensa la navbar */
+}
+
+/* Colore della barra di scorrimento */
+::-webkit-scrollbar-thumb {
+    background-color: #257676; /* Colore uguale al bordo dell'immagine del logo */
+    border-radius: 10px; /* Arrotonda la barra di scorrimento */
+    border: 2px solid #257676; /* Aggiungi un bordo per migliorare la visibilità */
+}
+
+/* Colore della barra di scorrimento al passaggio del mouse */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #1e5b5b; /* Colore più scuro al passaggio del mouse */
+}
+
+/* Corpo della pagina */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    overflow-y: scroll; /* Assicurati che la barra di scorrimento sia visibile */
+    margin-top: 20vh; /* Compensa la navbar */
+    zoom: 80%;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #333;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    margin-bottom: 20px;
+}
+
+/* Logo della navbar */
+.navbar-logo {
+    width: 70px; /* Imposta la larghezza dell'immagine */
+    height: 70px; /* Imposta l'altezza dell'immagine */
+    border-radius: 50%; /* Rende l'immagine rotonda */
+    margin-left: 20px; /* Spazio dal lato sinistro */
+    cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
+    border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
+}
+
+.navbar-item,
+.home-button {
+    color: white; /* Colore del testo del pulsante */
+    text-decoration: none; /* Rimuovi la sottolineatura */
+    font-size: 24px; /* Dimensione del testo */
+    margin: 0 10px; /* Riduci il margine a destra per spostarli verso sinistra */
+    padding: 15px 20px; /* Aumenta la spaziatura interna */
+    border-radius: 5px; /* Angoli arrotondati */
+    transition: background-color 0.3s; /* Transizione per il colore di sfondo */
+    position: relative;
+}
+
+
+/* Hover sui bottoni */
+.navbar-item:hover,
+.home-button:hover {
+    background-color: #257676; /* Colore al passaggio del mouse */
+}
+
+.navbar-links {
+    transform: translateX(-5vh);
+}
+
+form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 60px auto 40px; /* Aumentato il margine inferiore per più distanza */
+}
+
+#results {
+    margin-top: 150px; /* Aumentato il margine superiore per separare di più dal form */
+    display: none;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+h2 {
+    text-align: center; /* Centra il titolo h2 */
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #309191;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    
+}
+
+button[type="submit"]:hover {
+    background-color: #2d8585;
+    transition: background-color 0.3s;
+}
+
+#results {
+    margin: 5vh;
+    display: none;
+    background-color: #fff;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#results p {
+    font-size: 16px;
+    color: #333;
+    margin: 10px 0;
+}
+
+.graph-container {
+    display: flex;
+    justify-content: center;
+    gap: 0px; /* Imposta la distanza a 1px */
+    margin-top: 20px;
+    display: none; /* Nasconde inizialmente la grafica */
+}
+
+canvas {
+    border: 1px solid #000; /* Aggiungi un bordo per meglio visualizzare i grafici */
+    margin: 0 5px;
+}
+
+iframe {
+    margin: 20px 0;
+    border: 1px solid #ccc; 
+    width: 100%;
+}
+
+.average-column {
+    text-align: center; /* Centra il testo nella colonna media */
+    margin: 0 10px; /* Margine orizzontale ridotto */
+}
+
+#togglePDFButton {
+    display: block; /* Assicura che il bottone sia centrato */
+    margin: 20px auto; /* Centra il bottone */
+    padding: 10px 15px;
+    background-color: #257676;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    transform: scale(2);
+}
+
+#togglePDFButton:hover {
+    background-color: #1e5b5b;
+}
+
+.average-box {
+    position: absolute;
+    top: 10px; /* Sposta il box più in alto */
+    left: 10px; /* Sposta il box a sinistra */
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    font-size: 16px;
+    border: none; 
+    border-radius: 5px; /* Aggiungi un bordo arrotondato per un aspetto più morbido */
+    transform: translateX(200vh) translateY(5vh);
+}
+/* Centratura del menù a tendina */
+#frequencyType {
+    display: block;
+    margin: 0 auto;
+    width: 60%;
+    height: 34px;
+    font-size: 16px;
+}
+
+/* Centratura delle barre di scorrimento */
+#sliders {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Clearfix per il form */
+form::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Stile per il form */
+form {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    margin-bottom: 5vh;
+}
+
+#lambdaLabel {
+    margin-top: 10px;
+}
+
+#lambdaRange {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #257676;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+#lambdaRange:hover {
+    opacity: 1;
+}
+
+#lambdaRange::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #257676;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+#lambdaRange::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #123838;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.drive-link {
+    text-align: center;
+    margin-top: 10vh;
+    margin-bottom: 10vh;
+  }
+  
+  .drive-link a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #309191;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.5s ease;
+  }
+  
+  .drive-link a:hover {
+    background-color: #2d8585;
+    transition: background-color 0.5s ease;
+  }
+  
+
+
+  .graph-container {
+    display: none;
+    text-align: center; 
+    margin-top: 20px;   
+}
+
+.graph-container canvas {
+    display: block;
+    margin: 0 auto; 
+}

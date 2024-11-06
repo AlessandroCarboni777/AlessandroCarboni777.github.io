@@ -1,7 +1,7 @@
 ## Relative Frequency and Absolute Frequency
 
-- **Absolute Frequency**: is the number of times a given event or result occurs within a data set. It is an integer value greater than $0$:$$f_a=\text{counting\hspace{5px}\hspace{5px}events}$$![[Pasted image 20241015234234.png|800]]
-- **Relative Frequency**: is the absolute frequency of an event divided by the total number of observations. It is expressed as a fraction or percentage of the total, thus assuming values in the range $[0,1]$: $$f_r=\frac{\text{total\hspace{5px}number\hspace{5px}of\hspace{5px}observations}}{f_a​}$$![[Pasted image 20241015234258.png|800]]
+- **Absolute Frequency**: is the number of times a given event or result occurs within a data set. It is an integer value greater than $0$:$$f_a=\text{counting\hspace{5px}\hspace{5px}events}$$![[Pasted image 20241015234234.png|500]]
+- **Relative Frequency**: is the absolute frequency of an event divided by the total number of observations. It is expressed as a fraction or percentage of the total, thus assuming values in the range $[0,1]$: $$f_r=\frac{\text{total\hspace{5px}number\hspace{5px}of\hspace{5px}observations}}{f_a​}$$![[Pasted image 20241015234258.png|500]]
 ___
 ## Deviation 
 
@@ -86,7 +86,7 @@ Therefore, to derive the recursive formula of the variance, we must first find t
 ## Observations
 
 ###### Chart 1
-![[Pasted image 20241016010229.png|800]]
+![[Pasted image 20241016010229.png|500]]
 As time progresses, the randomness and variability of the variables involved tend to amplify the dispersion of values. This results in a progressive widening of the distribution between $t = n/2$ and $t = n$, where the distribution moves away from the average and assumes a broader shape. This phenomenon is consistent with the law of large numbers and the effect of the summation of random variables, which, with the passage of time, leads to a greater dispersion of the data around the average, until a flatter Gaussian curve is formed.
 
 The behaviour of the graph has to do with the **normal distribution** and the formula that describes it. The spread observed between $t = n/2$ and $t = n$ is in fact related to the properties of the **normal distribution** (or Gaussian), which is described by the following formula:$$f(x) = \frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}$$Where:
@@ -103,9 +103,9 @@ The behaviour of the graph has to do with the **normal distribution** and the fo
     
 3. **Tendency towards a flatter curve**: When the variance $\sigma^2$ increases over time, the term $e^{-\frac{(x - \mu)^2}{2\sigma^2}}$ in the normal formula leads to a reduction in the height of the curve and a widening of its base. This reflects a greater scattering of the data and a ‘spreading’ phenomenon observed between $t = n/2$ and $t=n$.
 
-######### Chart 2
+###### Chart 2
 
-![[Pasted image 20241016010939.png|800]]
+![[Pasted image 20241016010939.png|500]]
 
 As we can see from the box on the top right, with the same input data the mean and variance values change if we use a frequency distribution.
 

@@ -13,15 +13,15 @@
             const xValues = [];
             const yValues = [];
             
-            // Generate random points
+            // Genera punti casuali
             for (let i = 0; i < numPoints; i++) {
                 const x = Math.random() * 10;
-                const y = 0.5 * x + Math.random() * 2; // Adjust slope and randomness here
+                const y = 0.5 * x + Math.random() * 2; // Regola la pendenza e casualità
                 xValues.push(x);
                 yValues.push(y);
             }
         
-            // Calculate linear regression coefficients
+            // Calcola i coefficienti della regressione lineare originale
             const xMean = xValues.reduce((sum, val) => sum + val, 0) / numPoints;
             const yMean = yValues.reduce((sum, val) => sum + val, 0) / numPoints;
             const numerator = xValues.reduce((sum, x, i) => sum + (x - xMean) * (yValues[i] - yMean), 0);
@@ -29,42 +29,54 @@
             const slope = numerator / denominator;
             const intercept = yMean - slope * xMean;
         
-            // Show the graph container
+            // Calcola il coefficiente di determinazione R^2
+            let ssRes = 0;
+            let ssTot = 0;
+            yValues.forEach((y, i) => {
+                const yPred = slope * xValues[i] + intercept;
+                ssRes += (y - yPred) ** 2;
+                ssTot += (y - yMean) ** 2;
+            });
+            const rSquared = 1 - (ssRes / ssTot);
+        
+            // Calcola i coefficienti della regressione inversa (invertendo x e y)
+            const yNumerator = yValues.reduce((sum, y, i) => sum + (y - yMean) * (xValues[i] - xMean), 0);
+            const yDenominator = yValues.reduce((sum, y) => sum + (y - yMean) ** 2, 0);
+            const inverseSlope = yNumerator / yDenominator;
+            const inverseIntercept = xMean - inverseSlope * yMean;
+        
+            // Mostra il contenitore del grafico
             const graphContainer = document.querySelector(".graph-container");
             graphContainer.style.display = "block";
         
-            // Draw the scatter plot and regression line
+            // Disegna il grafico e le rette
             const canvas = document.getElementById("combinedGraph");
             const ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-            // Set background to black
+            // Sfondo nero
             ctx.fillStyle = "black";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-            // Define padding and effective drawing area
+            // Definisci i margini
             const padding = 50;
             const effectiveWidth = canvas.width - padding * 2;
             const effectiveHeight = canvas.height - padding * 2;
         
-            // Draw axes with thicker lines
+            // Disegna gli assi
             ctx.strokeStyle = "#f2ff00";
             ctx.lineWidth = 3;
             ctx.beginPath();
-            
-            // X-axis
-            ctx.moveTo(padding, canvas.height - padding);
+            ctx.moveTo(padding, canvas.height - padding); // Asse X
             ctx.lineTo(canvas.width - padding, canvas.height - padding);
-            
-            // Y-axis
-            ctx.moveTo(padding, canvas.height - padding);
+            ctx.moveTo(padding, canvas.height - padding); // Asse Y
             ctx.lineTo(padding, padding);
             ctx.stroke();
         
-            // Draw arrowheads for the axes
+            // Disegna frecce per gli assi
             const arrowSize = 10;
             
-            // X-axis arrow
+            // Freccia asse X
             ctx.beginPath();
             ctx.moveTo(canvas.width - padding, canvas.height - padding);
             ctx.lineTo(canvas.width - padding - arrowSize, canvas.height - padding - arrowSize / 2);
@@ -72,8 +84,8 @@
             ctx.closePath();
             ctx.fillStyle = "#f2ff00";
             ctx.fill();
-        
-            // Y-axis arrow
+            
+            // Freccia asse Y
             ctx.beginPath();
             ctx.moveTo(padding, padding);
             ctx.lineTo(padding - arrowSize / 2, padding + arrowSize);
@@ -81,16 +93,14 @@
             ctx.closePath();
             ctx.fill();
         
-            // Add labels for the X and Y axes
+            // Etichette per gli assi X e Y
             ctx.font = "16px Arial";
             ctx.fillStyle = "#f2ff00";
-            ctx.fillText("X", canvas.width - padding + 15, canvas.height - padding + 5); // X-axis label
-            ctx.fillText("Y", padding - 5, padding - 10); // Y-axis label
-            
-            // Add label "O" at the origin
-            ctx.fillText("O", padding - 18, canvas.height - padding + 18);
+            ctx.fillText("X", canvas.width - padding + 15, canvas.height - padding + 5); // Etichetta asse X
+            ctx.fillText("Y", padding - 5, padding - 10); // Etichetta asse Y
+            ctx.fillText("O", padding - 18, canvas.height - padding + 18); // Etichetta origine
         
-            // Draw points within the padded area
+            // Disegna i punti nel grafico
             ctx.fillStyle = "rgba(244, 39, 255, 1)";
             ctx.lineWidth = 1;
             xValues.forEach((x, i) => {
@@ -101,7 +111,7 @@
                 ctx.fill();
             });
         
-            // Draw regression line within the padded area, ensuring it starts from the origin
+            // Disegna la retta di regressione originale
             ctx.strokeStyle = "#f2ff00";
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -109,7 +119,6 @@
             const yStart = slope * xStart + intercept;
             const xEnd = 10;
             const yEnd = slope * xEnd + intercept;
-        
             ctx.moveTo(
                 padding + (xStart / 10) * effectiveWidth,
                 canvas.height - (padding + (yStart / 10) * effectiveHeight)
@@ -119,8 +128,39 @@
                 canvas.height - (padding + (yEnd / 10) * effectiveHeight)
             );
             ctx.stroke();
-        }
         
+            // Disegna la retta di regressione inversa con la stessa lunghezza della retta originale
+            ctx.strokeStyle = "#6d7200"; // Cambia colore per distinguerla
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const xInverseStart = 0;
+            const yInverseStart = inverseSlope * xInverseStart + inverseIntercept;
+            const xInverseEnd = xEnd;
+            const yInverseEnd = inverseSlope * xInverseEnd + inverseIntercept;
+            ctx.moveTo(
+                padding + (xInverseStart / 10) * effectiveWidth,
+                canvas.height - (padding + (yInverseStart / 10) * effectiveHeight)
+            );
+            ctx.lineTo(
+                padding + (xInverseEnd / 10) * effectiveWidth,
+                canvas.height - (padding + (yInverseEnd / 10) * effectiveHeight)
+            );
+            ctx.stroke();
+        
+            // Disegna il box per R^2
+            const boxWidth = 100;
+            const boxHeight = 30;
+            const boxX = padding + effectiveWidth - boxWidth - 20; // Posizione vicino all'asse X
+            const boxY = canvas.height - padding + 10;
+        
+            ctx.fillStyle = "black"; // Colore di sfondo del box
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+        
+            // Mostra il valore di R^2 all'interno del box
+            ctx.font = "14px Arial";
+            ctx.fillStyle = "#f2ff00";
+            ctx.fillText(`R² = ${rSquared.toFixed(4)}`, boxX + 10, boxY + 20);
+        }
         
 
     </script>

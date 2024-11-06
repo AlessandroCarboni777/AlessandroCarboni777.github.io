@@ -10,24 +10,20 @@
             zoom: 80%; /* Imposta lo zoom della pagina all'80% */
         }
 
-        .average-box {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border: 1px solid black;
-            font-size: 16px;
-        }
-
         .graph-container {
-            position: relative; /* Necessario per posizionare l'average-box */
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
         }
+
+        canvas {
+            background-color: black; /* Set the canvas background to black */
+        }
     </style>
     <script>
+
+
         function saveValues(event) {
             event.preventDefault();
 
@@ -39,22 +35,11 @@
                 alert("Breach Probability must be between 0 and 1.");
                 return;
             }
-
-            document.getElementById('results').style.display = 'block';
+            
             document.querySelector('.graph-container').style.display = 'flex'; // Show the graph section
 
-            document.getElementById('results').innerHTML = `
-                <p>Number of Servers: ${numberOfServers}</p>
-                <p>Number of Attackers: ${numberOfAttackers}</p>
-                <p>Breach Probability: ${breachProbability}</p>
-            `;
-
-            const breachesData = drawCombinedGraph(numberOfServers, numberOfAttackers, breachProbability, numberOfServers);
-
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth'
-            });
+            drawCombinedGraph(numberOfServers, numberOfAttackers, breachProbability);
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
         function drawCombinedGraph(servers, attackers, probability) {
@@ -67,196 +52,186 @@
             const width = canvas.width - margin * 2;
             const height = canvas.height - margin * 2;
         
-            // Set axis thickness
-            const axisThickness = 5; 
-            ctx.lineWidth = axisThickness; 
-        
-            // Draw Y-axis (permanent)
+            const axisThickness = 1; 
+            ctx.lineWidth = axisThickness;
+
+            // Set axis color to #f2ff00
+            ctx.strokeStyle = '#f2ff00';
             ctx.beginPath();
             ctx.moveTo(margin, margin);
             ctx.lineTo(margin, height + margin);
-            ctx.strokeStyle = '#000'; // Consistent color for axes
             ctx.stroke();
-        
-            // Draw X-axis (permanent)
+
             ctx.beginPath();
             ctx.moveTo(margin, height + margin);
             ctx.lineTo(width + margin, height + margin); 
-            ctx.strokeStyle = '#000'; // Consistent color for axes
             ctx.stroke();
         
             let breachesData = [];
             let levelCounts = new Array(servers + 1).fill(0);
-            let average = 0;  // Variable to store the average dynamically
+            let average = 0;
         
-            const separatorX = margin + width * 0.7;  // Position of the separator
+            const separatorX = margin + width * 0.7;
         
             let attackerIndex = 0;
-        
+
             function drawNextLine() {
-                // If all attackers have been drawn, stop the interval
                 if (attackerIndex >= attackers) {
                     clearInterval(intervalID);
                     return;
                 }
-        
+
                 let breaches = 0;
                 ctx.beginPath();
                 ctx.moveTo(margin, height + margin);
-        
-                // Draw entire line for the current attacker
+
                 for (let i = 1; i <= servers; i++) {
                     if (Math.random() < probability) {
                         breaches++;
                     }
-        
+
                     const x = margin + (i / servers) * (width * 0.7);
                     const y = height + margin - (breaches / servers) * height;
                     ctx.lineTo(x, y);
                 }
-        
-                // Draw the full line
-                ctx.strokeStyle = `hsl(${(attackerIndex / attackers) * 360}, 100%, 50%)`;
-                ctx.lineWidth = 2; // Restore original thin line thickness for the internal lines
+
+                // Set line color to rgba(244, 39, 255, 0.3)
+                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)';
+                ctx.lineWidth = 2;
                 ctx.stroke();
-        
+
                 breachesData.push(breaches);
                 levelCounts[breaches]++;
                 attackerIndex++;
-        
-                // Update histogram after each line is drawn
+
                 drawHistogram(ctx, servers, levelCounts, attackers, margin, height, separatorX, width);
 
-                // Update and display the average dynamically
                 average = updateAverage(breachesData);
-                displayDynamicAverage(average);
+                displayDynamicAverage(ctx, average, canvas.width, margin); // Display average on canvas
             }
-        
-            // Set interval to draw each complete line every 0.05 seconds
+
             const intervalID = setInterval(drawNextLine, 50);
-        
-            // Ensure axes stay visible and consistent
+
+            function drawHistogram(ctx, servers, levelCounts, totalAttackers, margin, height, separatorX, width) {
+                const lineThickness = 1;
+
+                let baseBarLength = width * 0.25;
+
+                if (totalAttackers <= 50) {
+                    baseBarLength *= 0.5;
+                } else if (totalAttackers > 50 && totalAttackers < 100) {
+                    baseBarLength *= 0.75;
+                } else if (totalAttackers >= 100 && totalAttackers < 500) {
+                    baseBarLength *= 2;
+                } else if (totalAttackers >= 500) {
+                    baseBarLength *= 10;
+                }
+
+                if (servers <= 50) {
+                    baseBarLength *= 0.5;
+                } else if (servers > 50 && servers < 100) {
+                    baseBarLength *= 0.75;
+                } else if (servers >= 100 && servers < 500) {
+                    baseBarLength *= 2;
+                } else if (servers >= 500) {
+                    baseBarLength *= 5;
+                }
+
+                baseBarLength = Math.min(baseBarLength, width * 0.7);
+
+                ctx.clearRect(separatorX, 0, canvas.width - separatorX, canvas.height);
+
+                for (let i = 0; i <= servers; i++) {
+                    const frequencyRelative = levelCounts[i] / totalAttackers;
+                    let barLength = frequencyRelative * baseBarLength;
+
+                    // Set histogram bar color to #f2ff00
+                    ctx.fillStyle = '#f2ff00';
+
+                    const y = height + margin - (i / servers) * height;
+                    ctx.fillRect(separatorX, y - (lineThickness / 2), barLength, lineThickness);
+                }
+
+                keepAxesVisible();
+            }
+
             function keepAxesVisible() {
-                // Redraw Y-axis
+                const arrowSize = 10; // Size of the arrowhead
+                ctx.strokeStyle = '#f2ff00'; // Axis color
+                ctx.lineWidth = 1;
+
+                // Draw Y-axis
                 ctx.beginPath();
                 ctx.moveTo(margin, margin);
                 ctx.lineTo(margin, height + margin);
-                ctx.strokeStyle = '#000'; // Keep consistent axis color
-                ctx.lineWidth = axisThickness; 
                 ctx.stroke();
-        
-                // Redraw X-axis
+
+                // Draw Y-axis arrow
+                ctx.beginPath();
+                ctx.moveTo(margin - arrowSize / 2, margin + arrowSize); // Left side of arrowhead
+                ctx.lineTo(margin, margin); // Tip of arrow
+                ctx.lineTo(margin + arrowSize / 2, margin + arrowSize); // Right side of arrowhead
+                ctx.stroke();
+
+                // Draw X-axis
                 ctx.beginPath();
                 ctx.moveTo(margin, height + margin);
                 ctx.lineTo(width + margin, height + margin);
-                ctx.strokeStyle = '#000'; // Keep consistent axis color
-                ctx.lineWidth = axisThickness; 
                 ctx.stroke();
-        
-                // Redraw separator
+
+                // Draw X-axis arrow
+                ctx.beginPath();
+                ctx.moveTo(width + margin - arrowSize, height + margin - arrowSize / 2); // Top side of arrowhead
+                ctx.lineTo(width + margin, height + margin); // Tip of arrow
+                ctx.lineTo(width + margin - arrowSize, height + margin + arrowSize / 2); // Bottom side of arrowhead
+                ctx.stroke();
+
+                // Draw separator line (if needed)
                 ctx.beginPath();
                 ctx.moveTo(separatorX, margin - 20);
                 ctx.lineTo(separatorX, height + margin);
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = axisThickness;
                 ctx.stroke();
+
+                // Add labels "X", "Y", and "O"
+                ctx.fillStyle = '#f2ff00';
+                ctx.font = '16px Arial';
+                ctx.fillText('Y', margin - 20, margin + 10); // Label for Y-axis
+                ctx.fillText('X', width + margin - 10, height + margin + 20); // Label for X-axis
+                ctx.fillText('O', margin - 15, height + margin + 15); // Label for origin
             }
-        
-            // Ensure axes are redrawn after each histogram update
-            function drawHistogram(ctx, servers, levelCounts, totalAttackers, margin, height, separatorX, width) {
-                const lineThickness = 4; // Spessore delle barre dell'istogramma
-                
-                // Imposta la lunghezza base delle barre in base al numero di attaccanti
-                let baseBarLength = width * 0.25; // Lunghezza di base fissa
-            
-                // Modifica baseBarLength in base al numero di attaccanti
-                if (totalAttackers <= 50) {
-                    baseBarLength *= 0.5;  // Moltiplica per 0.5
-                } else if (totalAttackers > 50 && totalAttackers < 100) {
-                    baseBarLength *= 0.75; // Moltiplica per 0.75
-                } else if (totalAttackers >= 100 && totalAttackers < 500) {
-                    baseBarLength *= 2;  // Moltiplica per 1.5
-                } else if (totalAttackers >= 500) {
-                    baseBarLength *= 10;  // Moltiplica per 2.5
-                }
-            
-                // Modifica baseBarLength in base al numero di server
-                if (servers <= 50) {
-                    baseBarLength *= 0.5;  // Moltiplica per 0.5
-                } else if (servers > 50 && servers < 100) {
-                    baseBarLength *= 0.75; // Moltiplica per 0.75
-                } else if (servers >= 100 && servers < 500) {
-                    baseBarLength *= 2;  // Moltiplica per 1.5
-                } else if (servers >= 500) {
-                    baseBarLength *= 5;  // Moltiplica per 2.5
-                }
-            
-                // Assicurati che il baseBarLength non superi la larghezza disponibile
-                baseBarLength = Math.min(baseBarLength, width * 0.7); // Limitando la larghezza delle barre al 70% della larghezza totale
-            
-                // Clear only the histogram area to avoid flickering
-                ctx.clearRect(separatorX, 0, canvas.width - separatorX, canvas.height);
-                
-                // Disegna le barre dell'istogramma in base ai livelli di violazione
-                for (let i = 0; i <= servers; i++) {
-                    const frequencyRelative = levelCounts[i] / totalAttackers;
-                    let barLength = frequencyRelative * baseBarLength; // Scala la lunghezza delle barre in base a n
-            
-                    ctx.fillStyle = `hsl(${(i / servers) * 360}, 100%, 50%)`;
-            
-                    const y = height + margin - (i / servers) * height;
-                    ctx.fillRect(separatorX, y - (lineThickness / 2), barLength, lineThickness); // Mantieni lo spessore della barra
-                }
-            
-                // Mantieni gli assi visibili dopo che l'istogramma è stato disegnato
-                keepAxesVisible();
-            }            
-            
+
         }
 
-        // Function to calculate the average using the recursive formula
         function updateAverage(breachesData) {
             let average = 0;
-            let M_prev = 0; // Initialize M_{k-1}
+            let M_prev = 0;
 
             for (let k = 0; k < breachesData.length; k++) {
-                M_prev = average; // M_{k-1}
+                M_prev = average;
                 average += (breachesData[k] - M_prev) / (k + 1);
             }
 
             return average;
         }
 
-        // Function to display the dynamic average in the graph container
-        function displayDynamicAverage(average) {
-            const averageBox = document.getElementById('averageBox');
-            averageBox.innerHTML = `
-                <h3>Average</h3>
-                <p>${average.toFixed(2)}</p>
-            `;
+        function displayDynamicAverage(ctx, average, canvasWidth, margin) {
+            // Set text color to #f2ff00 and position the average display correctly
+            ctx.fillStyle = '#f2ff00';
+            ctx.font = '16px Arial';
+            ctx.clearRect(canvasWidth - 200, margin + 20, 100, 40); // Clear previous value area
+            ctx.fillText(`Average: ${average.toFixed(2)}`, canvasWidth - 500, margin + 450); // Display average at the corrected position
         }
-
-        function togglePDF() {
-            const pdfSection = document.getElementById('pdfSection');
-            const toggleButton = document.getElementById('togglePDFButton');
-            if (pdfSection.style.display === 'none') {
-                pdfSection.style.display = 'block';
-                toggleButton.innerText = 'Hide PDF';
-            } else {
-                pdfSection.style.display = 'none';
-                toggleButton.innerText = 'Show PDF';
-            }
-        }
+        
 
     </script>
 </head>
 <body>
     <nav class="navbar">
         <a href="../index.html">
-            <img src="../foto.png" alt="Logo" class="navbar-logo" > <!-- Immagine a sinistra -->
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
         </a>
         <div class="navbar-links">
-            <a href="../homeworks.html" class="navbar-item">Homework</a> <!-- Pulsante Homeworks -->
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
         </div>
     </nav>
 
@@ -279,18 +254,12 @@
         <button type="submit">Draw Graph</button>
     </form>
 
-    <div id="results"></div> 
 
-    <div class="graph-container" style="display: none;"> <!-- Initially hidden -->
+    <div class="graph-container" style="display: none;">
         <canvas id="combinedGraph" width="1600vh" height="600vh"></canvas>
-        <div id="averageBox" class="average-box">
-            <h3>Average</h3>
-            <p>0</p>
-        </div>
     </div>
     <div class="drive-link">
         <a href="https://drive.google.com/file/d/16QcN4A0Xw7jBW0jxbjEMMtFeRiFyuRSD/view?usp=sharing" target="_blank">Theoretical Notions</a>
     </div>
-      
 </body>
 </html>

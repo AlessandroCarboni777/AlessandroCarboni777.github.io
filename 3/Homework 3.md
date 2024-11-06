@@ -117,4 +117,4 @@ The probability of observing exactly $k$ events in a given interval is given by 
 
 A Poisson distribution can be represented with a **discrete bar plot**, where the height of each bar represents the probability of observing a certain number of events.
 
-![[Pasted image 20241023160119.png|700]]
+![[Pasted image 20241023160119.png|500]]

@@ -18,8 +18,9 @@
         }
 
         canvas {
-            background-color: black; /* Set the canvas background to black */
+            background-color: #f4f4f4;
         }
+        
     </style>
     <script>
 
@@ -56,7 +57,7 @@
             ctx.lineWidth = axisThickness;
 
             // Set axis color to #f2ff00
-            ctx.strokeStyle = '#f2ff00';
+            ctx.strokeStyle = '#000';
             ctx.beginPath();
             ctx.moveTo(margin, margin);
             ctx.lineTo(margin, height + margin);
@@ -95,8 +96,7 @@
                     ctx.lineTo(x, y);
                 }
 
-                // Set line color to rgba(244, 39, 255, 0.3)
-                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)';
+                ctx.strokeStyle = 'rgba(37, 118, 118, 0.3)';
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
@@ -146,7 +146,7 @@
                     let barLength = frequencyRelative * baseBarLength;
 
                     // Set histogram bar color to #f2ff00
-                    ctx.fillStyle = '#f2ff00';
+                    ctx.fillStyle = '#236d6d';
 
                     const y = height + margin - (i / servers) * height;
                     ctx.fillRect(separatorX, y - (lineThickness / 2), barLength, lineThickness);
@@ -157,7 +157,7 @@
 
             function keepAxesVisible() {
                 const arrowSize = 10; // Size of the arrowhead
-                ctx.strokeStyle = '#f2ff00'; // Axis color
+                ctx.strokeStyle = '#000'; // Axis color
                 ctx.lineWidth = 1;
 
                 // Draw Y-axis
@@ -193,8 +193,8 @@
                 ctx.stroke();
 
                 // Add labels "X", "Y", and "O"
-                ctx.fillStyle = '#f2ff00';
-                ctx.font = '16px Arial';
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 16px Arial';
                 ctx.fillText('Y', margin - 20, margin + 10); // Label for Y-axis
                 ctx.fillText('X', width + margin - 10, height + margin + 20); // Label for X-axis
                 ctx.fillText('O', margin - 15, height + margin + 15); // Label for origin
@@ -215,12 +215,15 @@
         }
 
         function displayDynamicAverage(ctx, average, canvasWidth, margin) {
-            // Set text color to #f2ff00 and position the average display correctly
-            ctx.fillStyle = '#f2ff00';
-            ctx.font = '16px Arial';
-            ctx.clearRect(canvasWidth - 200, margin + 20, 100, 40); // Clear previous value area
-            ctx.fillText(`Average: ${average.toFixed(2)}`, canvasWidth - 500, margin + 450); // Display average at the corrected position
+            // Imposta il colore di sfondo a #f4f4f4 e il colore della scritta a #000
+            ctx.clearRect(canvasWidth - 200, margin + 20, 100, 40); // Pulisci l'area precedente
+            ctx.fillStyle = '#f4f4f4'; // Colore di sfondo
+            ctx.fillRect(canvasWidth - 200, margin + 20, 100, 40); // Disegna lo sfondo
+            ctx.fillStyle = '#000'; // Colore della scritta
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(`Average: ${average.toFixed(2)}`, canvasWidth - 500, margin + 450); // Mostra la media
         }
+        
         
 
     </script>
@@ -240,15 +243,15 @@
     <h2>Practical Application</h2>
     <form onsubmit="saveValues(event)">
         <label for="servers">Number of Servers:</label>
-        <input type="number" id="servers" name="servers" required>
+        <input type="number" id="servers" name="servers" value="100" required>
         <br>
 
         <label for="attackers">Number of Attackers:</label>
-        <input type="number" id="attackers" name="attackers" required>
+        <input type="number" id="attackers" name="attackers" value="100" required>
         <br>
 
         <label for="breach">Breach Probability (between 0 and 1):</label>
-        <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" required>
+        <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" value="0.5" required>
         <br>
 
         <button type="submit">Draw Graph</button>

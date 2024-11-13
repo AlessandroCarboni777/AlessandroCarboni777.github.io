@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carboni Alessandro - Homework 1</title>
+    <title>Carboni Alessandro - Homework 3</title>
     <link rel="stylesheet" href="styles.css"> 
     <style>
         body {
@@ -144,63 +144,65 @@
             const canvas = document.getElementById('combinedGraph');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-            ctx.fillStyle = '#000';
+        
+            // Colore di sfondo bianco
+            ctx.fillStyle = '#f4f4f4';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+        
             const marginX = 50; 
             const marginY = 30; 
             const chartWidth = canvas.width - marginX * 2; 
             const chartHeight = canvas.height - marginY * 2; 
             const maxScoreX = canvas.width - marginX - (chartWidth * 0.25); 
             const xStep = (maxScoreX - marginX) / systems; 
-    
+        
             const initialY = canvas.height / 2; 
-    
+        
             ctx.lineWidth = 2; 
-            ctx.strokeStyle = '#f2ff00';
-    
+            ctx.strokeStyle = '#000'; // Colore nero per gli assi
+        
+            // Disegna gli assi
             ctx.beginPath();
             ctx.moveTo(marginX, marginY);
             ctx.lineTo(marginX, canvas.height - marginY);
             ctx.stroke();
             ctx.closePath();
-    
+        
             const randomSystemX = marginX + Math.floor(systems / 2) * xStep;
-    
+        
             ctx.beginPath();
             ctx.moveTo(marginX, initialY);
             ctx.lineTo(maxScoreX, initialY);
             ctx.stroke();
             ctx.closePath();
-    
+        
             ctx.beginPath();
             ctx.moveTo(maxScoreX, marginY);
             ctx.lineTo(maxScoreX, canvas.height - marginY);
             ctx.stroke();
             ctx.closePath();
-    
+        
             ctx.beginPath();
             ctx.moveTo(randomSystemX, marginY);
             ctx.lineTo(randomSystemX, canvas.height - marginY);
             ctx.stroke();
             ctx.closePath();
-    
+        
             const penetrationData = [];
             const penetrationDataTempoT = [];
             const randomLineT = Math.floor(systems / 2);
             let attackerIndex = 0;
-    
+        
             function drawNextLine() {
                 if (attackerIndex >= attackers) {
                     clearInterval(intervalID);
                     return;
                 }
-    
+        
                 let breaches = 0;
                 ctx.beginPath();
                 ctx.moveTo(marginX, initialY); 
-    
+        
                 for (let j = 0; j <= systems; j++) {
                     const penetrated = Math.random() < probability;
                     breaches += penetrated ? parseInt(document.getElementById('maxValue').value) : -parseInt(document.getElementById('minValue').value);
@@ -209,26 +211,30 @@
                     ctx.lineTo(marginX + (j * xStep), y);
                     if (j === randomLineT) penetrationDataTempoT.push(breaches);
                 }
-    
-                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)';
+        
+                // Linea tracciata del grafico
+                ctx.strokeStyle = 'rgba(37, 118, 118, 0.3)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.closePath();
-    
+        
                 breachesData.push(breaches);
                 penetrationData.push(breaches);
-    
+        
                 average = updateAverage(breachesData);
                 const variance = updateVariance(breaches);
                 displayDynamicValues(ctx, average, variance, canvas.width, marginX);
-    
+        
                 attackerIndex++;
                 drawHistogram(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight);
                 drawHistogramAtT(ctx, penetrationDataTempoT, systems, attackers, randomSystemX, initialY, chartHeight);
             }
-    
+        
             const intervalID = setInterval(drawNextLine, 50);
         }
+        
+        
+        
 
         function drawRelativeGraph(systems, attackers, probability) {
             const canvas = document.getElementById('combinedGraph');
@@ -236,7 +242,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         
             // Set black background
-            ctx.fillStyle = '#000';
+            ctx.fillStyle = '#f4f4f4';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         
             const marginX = 50;
@@ -253,7 +259,7 @@
             ctx.moveTo(marginX, marginY);
             ctx.lineTo(marginX, canvas.height - marginY);
             ctx.lineTo(canvas.width - marginX, canvas.height - marginY);
-            ctx.strokeStyle = '#f2ff00'; // Yellow for axes
+            ctx.strokeStyle = '#000'; // Yellow for axes
             ctx.stroke();
             ctx.closePath();
         
@@ -268,7 +274,7 @@
                 ctx.moveTo(marginX, initialY);
                 let successes = 0;
         
-                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)'; // Purple with transparency for lines
+                ctx.strokeStyle = 'rgba(37, 118, 118, 0.3)';
         
                 for (let j = 1; j <= systems; j++) {
                     const penetrated = Math.random() < probability;
@@ -312,7 +318,7 @@
             ctx.beginPath();
             ctx.moveTo(randomSystemX, marginY);
             ctx.lineTo(randomSystemX, canvas.height - marginY);
-            ctx.strokeStyle = '#f2ff00'; // Yellow for vertical line
+            ctx.strokeStyle = '#000'; // Yellow for vertical line
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.closePath();
@@ -321,7 +327,7 @@
             ctx.beginPath();
             ctx.moveTo(marginX, marginY);
             ctx.lineTo(marginX, canvas.height - marginY);
-            ctx.strokeStyle = '#f2ff00'; // Same color as the axes
+            ctx.strokeStyle = '#000'; // Same color as the axes
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.closePath();
@@ -329,7 +335,7 @@
             ctx.beginPath();
             ctx.moveTo(finalSystemX, marginY);
             ctx.lineTo(finalSystemX, canvas.height - marginY);
-            ctx.strokeStyle = '#f2ff00'; // Same color as the axes
+            ctx.strokeStyle = '#000'; // Same color as the axes
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.closePath();
@@ -352,7 +358,7 @@
                     ctx.beginPath();
                     ctx.moveTo(randomSystemX, y);
                     ctx.lineTo(randomSystemX + frequencyRelative * (chartWidth / 2), y);
-                    ctx.strokeStyle = '#f2ff00'; // Yellow for histogram bars
+                    ctx.strokeStyle = '#236d6d'; // Yellow for histogram bars
                     ctx.lineWidth = 4;
                     ctx.stroke();
                     ctx.closePath();
@@ -377,7 +383,7 @@
                     ctx.beginPath();
                     ctx.moveTo(finalSystemX, y); // New position for the t_n histogram
                     ctx.lineTo(finalSystemX + frequencyRelativeTN * (chartWidth / 2), y); // Adjust length of bars
-                    ctx.strokeStyle = '#f2ff00'; // Green for second histogram
+                    ctx.strokeStyle = '#236d6d'; // Green for second histogram
                     ctx.lineWidth = 4;
                     ctx.stroke();
                     ctx.closePath();
@@ -390,7 +396,7 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#000';
+            ctx.fillStyle = '#f4f4f4';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const marginX = 50; 
@@ -406,31 +412,16 @@
             ctx.beginPath();
             ctx.moveTo(marginX, marginY);
             ctx.lineTo(marginX, canvas.height - marginY);
-            ctx.strokeStyle = '#f2ff00';
+            ctx.strokeStyle = '#000';
             ctx.stroke();
             ctx.closePath();
 
-            // Aggiungi le etichette sull'asse Y
-            ctx.fillStyle = '#f2ff00'; // Colore del testo
-            ctx.font = '16px Arial'; // Imposta il font per le etichette
-            ctx.textAlign = 'right';
-
-            // Recupera il numero effettivo di servers dall'elemento con id "servers"
-            const numberOfServers = parseInt(document.getElementById('servers').value);
-
-            // Etichetta in cima
-            ctx.fillText(numberOfServers, marginX + 40, marginY + 10);
-            // Etichetta al centro
-            ctx.fillText('0', marginX - 10, initialY+5);
-            // Etichetta in basso
-            ctx.fillText(`-${numberOfServers}`, marginX + 40, canvas.height - marginY);
-
-
+            
             const randomSystemX = marginX + Math.floor(systems / 2) * xStep;
             ctx.beginPath();
             ctx.moveTo(marginX, initialY);
             ctx.lineTo(maxScoreX, initialY);
-            ctx.strokeStyle = '#f2ff00';
+            ctx.strokeStyle = '#000';
             ctx.lineWidth = axisThickness;
             ctx.stroke();
             ctx.closePath();
@@ -438,7 +429,7 @@
             ctx.beginPath();
             ctx.moveTo(maxScoreX, marginY);
             ctx.lineTo(maxScoreX, canvas.height - marginY);
-            ctx.strokeStyle = '#f2ff00';
+            ctx.strokeStyle = '#000';
             ctx.lineWidth = axisThickness;
             ctx.stroke();
             ctx.closePath();
@@ -446,7 +437,7 @@
             ctx.beginPath();
             ctx.moveTo(randomSystemX, marginY);
             ctx.lineTo(randomSystemX, canvas.height - marginY);
-            ctx.strokeStyle = '#f2ff00';
+            ctx.strokeStyle = '#000';
             ctx.lineWidth = axisThickness;
             ctx.stroke();
             ctx.closePath();
@@ -487,7 +478,7 @@
                     }
                 }
 
-                ctx.strokeStyle = 'rgba(244, 39, 255, 0.3)';
+                ctx.strokeStyle = 'rgba(37, 118, 118, 0.3)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.closePath();
@@ -499,7 +490,7 @@
 
                 const variance = updateVariance(breaches);
 
-                displayDynamicValues2(ctx, average, variance, canvas.width, marginX);
+                displayDynamicValues(ctx, average, variance, canvas.width, marginX);
 
                 attackerIndex++;
 
@@ -510,10 +501,8 @@
             const intervalID = setInterval(drawNextLine, 50);
             
         }
-    
-                   
 
-    
+        
         function drawHistogram(ctx, penetrationData, systems, attackers, marginX, maxScoreX, initialY, chartHeight) {
             const totalLevels = 2 * systems; 
             const levelCounts = new Array(totalLevels).fill(0);
@@ -532,33 +521,31 @@
                 ctx.beginPath();
                 ctx.moveTo(maxScoreX, startY);
                 ctx.lineTo(maxScoreX + lineLength, startY); 
-                ctx.strokeStyle = '#f2ff00'; // Colore giallo per le linee dell'istogramma
+                ctx.strokeStyle = '#236d6d'; // Colore per le linee dell'istogramma
                 ctx.lineWidth = 4; 
                 ctx.stroke();
                 ctx.closePath();
             }
         }
         
-        
-    
         function drawHistogramAtT(ctx, penetrationDataTempoT, systems, attackers, randomSystemX, initialY, chartHeight) {
             const levelCounts2 = new Array(systems * 2 + 1).fill(0); 
-    
+        
             penetrationDataTempoT.forEach(penetration => {
                 levelCounts2[penetration + systems] += 1; 
             });
-    
+        
             for (let i = -systems; i <= systems; i++) {
                 const frequencyAbsolute = levelCounts2[i + systems]; 
                 const frequencyRelative = frequencyAbsolute / attackers; 
-    
+        
                 const startY = initialY - (i * (chartHeight / (2 * systems))); 
                 const lineLength = Math.max(frequencyRelative * 300, 1); 
-    
+        
                 ctx.beginPath();
                 ctx.moveTo(randomSystemX, startY); 
                 ctx.lineTo(randomSystemX + lineLength, startY); 
-                ctx.strokeStyle = '#f2ff00'; 
+                ctx.strokeStyle = '#236d6d'; // Colore per le linee dell'istogramma a t
                 ctx.lineWidth = 4; 
                 ctx.stroke();
                 ctx.closePath();
@@ -572,31 +559,16 @@
         
             ctx.clearRect(canvasWidth - 410 + offsetX, margin + 420 + offsetY, 250, 50); // Clear previous value area
             
-            ctx.fillStyle = '#000'; // Black background
+            ctx.fillStyle = '#f4f4f4'; // Black background
             ctx.fillRect(canvasWidth - 410 + offsetX, margin + 420 + offsetY, 250, 50); // Set background size for text box
             
-            ctx.fillStyle = '#f2ff00'; // Text color
-            ctx.font = '16px Arial';
+            ctx.fillStyle = '#000'; // Text color
+            ctx.font = 'bold 16px Arial';
             
-            ctx.fillText(`Average: ${average.toFixed(2)}`, canvasWidth - 400 + offsetX, margin + 450 + offsetY);
-            ctx.fillText(`Variance: ${variance.toFixed(2)}`, canvasWidth - 275 + offsetX, margin + 450 + offsetY);
+            ctx.fillText(`Average: ${average.toFixed(2)}`, canvasWidth - 410 + offsetX, margin + 450 + offsetY);
+            ctx.fillText(`Variance: ${variance.toFixed(2)}`, canvasWidth - 295 + offsetX, margin + 450 + offsetY);
         }
 
-        function displayDynamicValues2(ctx, average, variance, canvasWidth, margin) {
-            const offsetX = 20; // Aggiungi un offset per spostare leggermente a destra
-            const offsetY = 10; // Aggiungi un offset per spostare leggermente verso il basso
-        
-            ctx.clearRect(canvasWidth - 410 + offsetX, margin + 420 + offsetY, 250, 50); // Clear previous value area
-            
-            ctx.fillStyle = '#000'; // Black background
-            ctx.fillRect(canvasWidth - 410 + offsetX, margin + 420 + offsetY, 250, 50); // Set background size for text box
-            
-            ctx.fillStyle = '#f2ff00'; // Text color
-            ctx.font = '16px Arial';
-            
-            ctx.fillText(`Average: ${average.toFixed(2)}`, canvasWidth - 300 + offsetX, margin + 450 + offsetY);
-            ctx.fillText(`Variance: ${variance.toFixed(2)}`, canvasWidth - 175 + offsetX, margin + 450 + offsetY);
-        }
     
         function updateAverage(breachesData) {
             let average = 0;
@@ -635,18 +607,18 @@
     <form onsubmit="saveValues(event)">
         <!-- Numero di Server -->
         <label for="servers">Number of Servers:</label>
-        <input type="number" id="servers" name="servers" required oninput="updateLambdaRange()">
+        <input type="number" id="servers" name="servers" value ="100" required oninput="updateLambdaRange()">
         <br>
     
         <!-- Numero di Attaccanti -->
         <label for="attackers">Number of Attackers:</label>
-        <input type="number" id="attackers" name="attackers" required>
+        <input type="number" id="attackers" name="attackers" value="100" required>
         <br>
     
         <!-- Label per la distribuzione di Breach (sarà nascosto per Poisson) -->
         <div id="breachLabel">
             <label for="breach">Breach Probability (between 0 and 1):</label>
-            <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" required>
+            <input type="number" id="breach" name="breach" step="0.01" min="0.01" max="1" value="0.5" required>
             <br>
         </div>
     

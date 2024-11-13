@@ -320,6 +320,35 @@ form {
     margin: 0 auto; 
 }
 
+
+/* Stile per la tabella delle probabilità */
+.prob-table {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse;
+}
+
+.prob-table td {
+    padding: 5px;
+}
+
+.probability-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* Stile per il messaggio di probabilità totale */
+#totalProbability {
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+    margin-bottom: 10px;
+}
+
 /* Rimuove le frecce per browser basati su WebKit (Chrome, Safari, Edge) */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carboni Alessandro - Homework 1</title>
+    <title>Carboni Alessandro - Homework 5</title>
     <link rel="stylesheet" href="styles.css"> 
 
     <script>
@@ -55,7 +55,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         
             // Sfondo nero
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "#f4f4f4";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         
             // Definisci i margini
@@ -64,7 +64,7 @@
             const effectiveHeight = canvas.height - padding * 2;
         
             // Disegna gli assi
-            ctx.strokeStyle = "#f2ff00";
+            ctx.strokeStyle = "#000";
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(padding, canvas.height - padding); // Asse X
@@ -82,7 +82,7 @@
             ctx.lineTo(canvas.width - padding - arrowSize, canvas.height - padding - arrowSize / 2);
             ctx.lineTo(canvas.width - padding - arrowSize, canvas.height - padding + arrowSize / 2);
             ctx.closePath();
-            ctx.fillStyle = "#f2ff00";
+            ctx.fillStyle = "#000";
             ctx.fill();
             
             // Freccia asse Y
@@ -94,14 +94,14 @@
             ctx.fill();
         
             // Etichette per gli assi X e Y
-            ctx.font = "16px Arial";
-            ctx.fillStyle = "#f2ff00";
+            ctx.font = "bold 16px Arial";
+            ctx.fillStyle = "#000";
             ctx.fillText("X", canvas.width - padding + 15, canvas.height - padding + 5); // Etichetta asse X
             ctx.fillText("Y", padding - 5, padding - 10); // Etichetta asse Y
             ctx.fillText("O", padding - 18, canvas.height - padding + 18); // Etichetta origine
         
             // Disegna i punti nel grafico
-            ctx.fillStyle = "rgba(244, 39, 255, 1)";
+            ctx.fillStyle = "rgba(37, 118, 118, 1)";
             ctx.lineWidth = 1;
             xValues.forEach((x, i) => {
                 const px = padding + (x / 10) * effectiveWidth;
@@ -112,7 +112,7 @@
             });
         
             // Disegna la retta di regressione originale
-            ctx.strokeStyle = "#f2ff00";
+            ctx.strokeStyle = "#000";
             ctx.lineWidth = 2;
             ctx.beginPath();
             const xStart = 0;
@@ -130,7 +130,7 @@
             ctx.stroke();
         
             // Disegna la retta di regressione inversa con la stessa lunghezza della retta originale
-            ctx.strokeStyle = "#6d7200"; // Cambia colore per distinguerla
+            ctx.strokeStyle = "#000"; // Cambia colore per distinguerla
             ctx.lineWidth = 2;
             ctx.beginPath();
             const xInverseStart = 0;
@@ -153,13 +153,15 @@
             const boxX = padding + effectiveWidth - boxWidth - 20; // Posizione vicino all'asse X
             const boxY = canvas.height - padding + 10;
         
-            ctx.fillStyle = "black"; // Colore di sfondo del box
+            ctx.fillStyle = "#f4f4f4"; // Colore di sfondo del box
             ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
         
             // Mostra il valore di R^2 all'interno del box
-            ctx.font = "14px Arial";
-            ctx.fillStyle = "#f2ff00";
+            ctx.font = "bold 16px Arial";
+            ctx.fillStyle = "#000";
             ctx.fillText(`R² = ${rSquared.toFixed(4)}`, boxX + 10, boxY + 20);
+            document.querySelector(".graph-container").style.display = "block";
+            document.querySelector(".graph-container").scrollIntoView({ behavior: "smooth", block: "center" });
         }
         
 
@@ -181,7 +183,7 @@
     <h2>Practical Application</h2>
     <form onsubmit="event.preventDefault(); drawGraph();">
         <label for="points">Number of Points</label>
-        <input type="number" id="points" name="points" min="2" max="1000" required>
+        <input type="number" id="points" name="points" min="2" max="1000" value="100" required>
         <button type="submit">Draw Graph</button>
     </form>
 

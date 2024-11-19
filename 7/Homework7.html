@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carboni Alessandro - Homework 7</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        let totalPoints = 0;
+        let intervalId;
+        let currentSample = 0; // Keeps track of which sample is being drawn
+        const allData = []; // Stores data for all samples
+        const allProbabilities = []; // Stores probabilities for all samples
+        const allMeans = []; // Stores means for all samples
+        const allVariances = []; // Stores variances for all samples
+        const colors = generateSimilarColors([37, 118, 118], 0.3, 100); // Generate 100 similar RGBA colors
+
+        function createProbabilityTable() {
+            const nIntervals = parseInt(document.getElementById('nIntervals').value);
+            const tableContainer = document.getElementById('probabilityTable');
+            tableContainer.innerHTML = ''; // Reset table contents
+
+            const table = document.createElement('table');
+            table.className = 'prob-table';
+
+            let row;
+            for (let i = 0; i < nIntervals; i++) {
+                if (i % 5 === 0) row = table.insertRow(); // New row every 5 cells
+
+                const cell = row.insertCell();
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'probability-input';
+                input.min = '0';
+                input.max = '1';
+                input.step = '0.1';
+                input.value = (Math.random().toFixed(1)); // Random value between 0 and 1
+                cell.appendChild(input);
+            }
+
+            tableContainer.appendChild(table);
+        }
+
+        function startGraph() {
+            clearInterval(intervalId); // Stop any previous interval
+            const nIntervals = parseInt(document.getElementById('nIntervals').value);
+            const numSamples = parseInt(document.getElementById('numSamples').value);
+            totalPoints = parseInt(document.getElementById('points').value);
+
+            // Reset data for all samples
+            allData.length = 0;
+            allProbabilities.length = 0;
+            allMeans.length = 0;
+            allVariances.length = 0;
+
+            for (let i = 0; i < numSamples; i++) {
+                allData.push(new Array(nIntervals).fill(0)); // Initialize data for each sample
+                allProbabilities.push(generateRandomProbabilities(nIntervals)); // Generate random probabilities
+            }
+
+            currentSample = 0;
+
+            // Display graph container
+            document.querySelector(".graph-container").style.display = "block";
+            document.querySelector(".graph-container").scrollIntoView({ behavior: "smooth", block: "center" });
+
+            // Start drawing histograms for each sample
+            intervalId = setInterval(() => {
+                if (currentSample < numSamples) {
+                    simulateOccurrences(allData[currentSample], allProbabilities[currentSample], totalPoints);
+                    calculateStatistics(allData[currentSample], currentSample); // Update statistics
+                    drawHistogram(allData, currentSample);
+                    currentSample++;
+                } else {
+                    clearInterval(intervalId); // Stop when all samples are drawn
+                }
+            }, 100);
+        }
+
+        function generateRandomProbabilities(nIntervals) {
+            return Array.from({ length: nIntervals }, () => parseFloat(Math.random().toFixed(1))); // Generate random probabilities in [0,1]
+        }
+
+        function simulateOccurrences(data, probabilities, points) {
+            const totalProbability = probabilities.reduce((sum, p) => sum + p, 0);
+
+            for (let p = 0; p < points; p++) {
+                const rand = Math.random() * totalProbability;
+                let cumulativeProbability = 0;
+
+                for (let j = 0; j < data.length; j++) {
+                    cumulativeProbability += probabilities[j];
+                    if (rand <= cumulativeProbability) {
+                        data[j]++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function calculateStatistics(data, sampleIndex) {
+            const mean = calculateMean(data);
+            const variance = calculateVariance(data, mean);
+
+            allMeans[sampleIndex] = mean;
+            allVariances[sampleIndex] = variance;
+        }
+
+        function calculateMean(data) {
+            const totalOccurrences = data.reduce((acc, val) => acc + val, 0);
+            return totalOccurrences
+                ? data.reduce((acc, count, index) => acc + count * index, 0) / totalOccurrences
+                : 0;
+        }
+
+        function calculateVariance(data, mean) {
+            const totalOccurrences = data.reduce((acc, val) => acc + val, 0);
+            return totalOccurrences
+                ? data.reduce((acc, count, index) => acc + count * Math.pow(index - mean, 2), 0) / totalOccurrences
+                : 0;
+        }
+
+        function drawHistogram(allData, sampleIndex) {
+            const canvas = document.getElementById("combinedGraph");
+            const ctx = canvas.getContext("2d");
+
+            const padding = 50;
+            const nIntervals = allData[0].length;
+            const barWidth = (canvas.width - 2 * padding) / nIntervals;
+
+            // Find maximum occurrences to normalize bar heights
+            const maxOccurrences = Math.max(...allData.flat());
+
+            if (sampleIndex === 0) {
+                // Clear canvas only on the first sample
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Y-axis
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, canvas.height - padding);
+                ctx.stroke();
+
+                // Y-axis labels
+                ctx.font = "12px Arial";
+                ctx.fillStyle = "#000";
+                // Disegna etichette dinamiche asse Y
+                const yTicks = maxOccurrences + 1; // Il numero di tick va da 0 al massimo valore
+                for (let i = 0; i <= maxOccurrences; i++) {
+                    const y = canvas.height - padding - (i * (canvas.height - 2 * padding) / yTicks);
+                    ctx.fillText(i, padding - 30, y -10 ); // Disegna l'etichetta con il valore di i
+                }
+
+
+                // Draw X-axis
+                ctx.beginPath();
+                ctx.moveTo(padding, canvas.height - padding);
+                ctx.lineTo(canvas.width - padding, canvas.height - padding);
+                ctx.stroke();
+            }
+
+            // Ripristina le etichette dell'asse X
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "#000";
+            const labelFrequency = Math.ceil(nIntervals / 15) || 1; // Frequenza delle etichette
+            for (let i = 0; i < nIntervals; i++) {
+                if (i % labelFrequency === 0) {
+                    const x = padding + i * barWidth + barWidth / 2;
+                    const label = `${i + 1}`; // Etichette da 1 a N
+                    ctx.fillText(label, x - 10, canvas.height - padding + 20); 
+                }
+            }
+
+
+            // Draw histogram bars for the current sample
+            const data = allData[sampleIndex];
+            ctx.fillStyle = colors[sampleIndex % colors.length];
+            data.forEach((value, intervalIndex) => {
+                const barHeight = (value / maxOccurrences) * (canvas.height - 2 * padding);
+                const x = padding + intervalIndex * barWidth;
+
+                ctx.fillRect(
+                    x,
+                    canvas.height - padding - barHeight,
+                    barWidth - 2,
+                    barHeight
+                );
+            });
+
+            // Update statistics below the graph
+            updateStatistics(ctx, padding, canvas);
+        }
+
+        let statsPositions = {
+            empiricalMean: { x: 0, y: 0 },
+            meanOfMeans: { x: 0, y: 0 },
+            empiricalVariance: { x: 0, y: 0 },
+            meanOfVariances: { x: 0, y: 0 }
+        };
+        
+        function updateStatistics(ctx, padding, canvas) {
+            // Calcola media delle medie e varianze
+            const meanOfMeans = allMeans.reduce((a, b) => a + b, 0) / allMeans.length;
+            const meanOfVariances = allVariances.reduce((a, b) => a + b, 0) / allVariances.length;
+        
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 14px Arial";
+        
+            // Disegna o aggiorna Empirical Mean
+            if (!statsPositions.empiricalMean.x) {
+                statsPositions.empiricalMean = { x: canvas.width - padding - 900, y: canvas.height - 5};
+                ctx.fillText(`Empirical Mean: ${allMeans[0]?.toFixed(2) || 0}`, statsPositions.empiricalMean.x, statsPositions.empiricalMean.y);
+            } else {
+                ctx.clearRect(statsPositions.empiricalMean.x, statsPositions.empiricalMean.y - 15, 200, 20);
+                ctx.fillText(`Empirical Mean: ${allMeans[0]?.toFixed(2) || 0}`, statsPositions.empiricalMean.x, statsPositions.empiricalMean.y);
+            }
+        
+            // Disegna o aggiorna Mean of Means
+            if (!statsPositions.meanOfMeans.x) {
+                statsPositions.meanOfMeans = { x: canvas.width - padding - 670, y: canvas.height - 5};
+                ctx.fillText(`Mean of Means: ${meanOfMeans.toFixed(2)}`, statsPositions.meanOfMeans.x, statsPositions.meanOfMeans.y);
+            } else {
+                ctx.clearRect(statsPositions.meanOfMeans.x, statsPositions.meanOfMeans.y - 15, 200, 20);
+                ctx.fillText(`Mean of Means: ${meanOfMeans.toFixed(2)}`, statsPositions.meanOfMeans.x, statsPositions.meanOfMeans.y);
+            }
+        
+            // Disegna o aggiorna Empirical Variance
+            if (!statsPositions.empiricalVariance.x) {
+                statsPositions.empiricalVariance = { x: canvas.width - padding - 420, y: canvas.height  - 5};
+                ctx.fillText(`Empirical Variance: ${allVariances[0]?.toFixed(2) || 0}`, statsPositions.empiricalVariance.x, statsPositions.empiricalVariance.y);
+            } else {
+                ctx.clearRect(statsPositions.empiricalVariance.x, statsPositions.empiricalVariance.y - 15, 200, 20);
+                ctx.fillText(`Empirical Variance: ${allVariances[0]?.toFixed(2) || 0}`, statsPositions.empiricalVariance.x, statsPositions.empiricalVariance.y);
+            }
+        
+            // Disegna o aggiorna Mean of Variances
+            if (!statsPositions.meanOfVariances.x) {
+                statsPositions.meanOfVariances = { x: canvas.width - padding - 170, y: canvas.height - 5};
+                ctx.fillText(`Mean of Variances: ${meanOfVariances.toFixed(2)}`, statsPositions.meanOfVariances.x, statsPositions.meanOfVariances.y);
+            } else {
+                ctx.clearRect(statsPositions.meanOfVariances.x, statsPositions.meanOfVariances.y - 15, 200, 20);
+                ctx.fillText(`Mean of Variances: ${meanOfVariances.toFixed(2)}`, statsPositions.meanOfVariances.x, statsPositions.meanOfVariances.y);
+            }
+        }
+        
+        
+
+        function generateSimilarColors(baseColor, alpha, count) {
+            const [baseR, baseG, baseB] = baseColor;
+            return Array.from({ length: count }, () => {
+                const variation = 20; // Maximum variation for RGB
+                const r = Math.min(Math.max(baseR + Math.floor(Math.random() * variation - variation / 2), 0), 255);
+                const g = Math.min(Math.max(baseG + Math.floor(Math.random() * variation - variation / 2), 0), 255);
+                const b = Math.min(Math.max(baseB + Math.floor(Math.random() * variation - variation / 2), 0), 255);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            });
+        }
+    </script>
+</head>
+<body onload="createProbabilityTable();">
+    <nav class="navbar">
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
+        </a>
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
+        </div>
+    </nav>
+
+    <h1>Homework 7 - Carboni Alessandro</h1>
+    <h2>Practical Application</h2>
+    <form onsubmit="event.preventDefault(); startGraph();">
+        <label for="points">Number of Occurrences</label>
+        <input type="number" id="points" name="points" min="1" max="100000" value="100" required>
+    
+        <label for="nIntervals">Number of Intervals</label>
+        <input type="number" id="nIntervals" name="nIntervals" min="3" max="100" value="10" required onchange="createProbabilityTable()">
+    
+        <label for="numSamples">Number of Samples</label>
+        <input type="number" id="numSamples" name="numSamples" min="1" max="100" value="50" required>
+    
+        <button type="submit" id="drawButton">Start Graph</button>
+    </form>
+
+    <div class="graph-container" style="display: none; text-align: center;">
+        <canvas id="combinedGraph" width="1000" height="650" style="margin: auto;"></canvas>
+    </div>
+    <div class="drive-link">
+        <a href="https://drive.google.com/file/d/1zr5iybNisH7qxGSbqgu395vkO42iQajs/view?usp=sharing" target="_blank">Theoretical Notions</a>
+    </div>
+</body>
+</html>

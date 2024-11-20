@@ -54,7 +54,15 @@ body {
     margin-left: 20px; /* Spazio dal lato sinistro */
     cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
     border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
+    transition: transform 0.3s;
 }
+
+.navbar-logo:hover {
+    border: 2px solid #1e5b5b;
+    transform: scale(1.2);
+    transition: transform 0.3s;
+}
+
 
 .navbar-item,
 .home-button {

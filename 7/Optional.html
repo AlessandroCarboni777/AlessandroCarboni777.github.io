@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optional Homework 7</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="styles2.css">
+    <script>
+        // Function to compute modular exponentiation distributions
+        function computeDistribution(n, gValues, maxU) {
+            const distributions = {};
+            for (let g of gValues) {
+                const residues = [];
+                for (let u = 1; u <= maxU; u++) {
+                    residues.push(Math.pow(g, u) % n);
+                }
+                const frequency = {};
+                residues.forEach(r => frequency[r] = (frequency[r] || 0) + 1);
+                distributions[g] = frequency;
+            }
+            return distributions;
+        }
+
+        // Function to calculate entropy
+        function calculateEntropy(distributions) {
+            const results = {};
+            for (let [g, freq] of Object.entries(distributions)) {
+                const total = Object.values(freq).reduce((sum, f) => sum + f, 0);
+                const probabilities = Object.values(freq).map(f => f / total);
+
+                const entropy = -probabilities.reduce((sum, p) => sum + (p > 0 ? p * Math.log2(p) : 0), 0);
+
+                results[g] = { entropy: entropy.toFixed(4) };
+            }
+            return results;
+        }
+
+        // Function to render metrics as styled inputs
+        function renderMetrics(metrics, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; // Clear previous metrics
+            for (let [g, { entropy }] of Object.entries(metrics)) {
+                const metricBox = document.createElement('div');
+                metricBox.className = 'metric-box';
+
+                const gLabel = document.createElement('label');
+                gLabel.textContent = `g = ${g}`;
+                metricBox.appendChild(gLabel);
+
+                const entropyInput = document.createElement('input');
+                entropyInput.type = 'text';
+                entropyInput.value = `Entropy: ${entropy}`;
+                entropyInput.readOnly = true;
+                metricBox.appendChild(entropyInput);
+
+                container.appendChild(metricBox);
+            }
+        }
+
+        // Prepare data for Chart.js
+        function prepareChartData(distributions, n) {
+            const labels = Array.from({ length: n }, (_, i) => i);
+            const datasets = [];
+            const colors = ['#46cdcd', '#257676', '#1e5b5b', '#0c2424'];
+            let colorIndex = 0;
+            for (let [g, freq] of Object.entries(distributions)) {
+                const data = labels.map(r => freq[r] || 0);
+                datasets.push({
+                    label: `g = ${g}`,
+                    data,
+                    backgroundColor: colors[colorIndex % colors.length],
+                    borderColor: colors[colorIndex % colors.length],
+                    borderWidth: 1
+                });
+                colorIndex++;
+            }
+            return { labels, datasets };
+        }
+
+        // Parameters
+        const caseA = { n: 19, gValues: [2, 3, 10, 17] };
+        const caseB = { n: 15, gValues: [3, 6, 9, 12] };
+        let chartA, chartB;
+
+        // Update charts with new maxU value
+        function updateCharts() {
+            const maxU = parseInt(document.getElementById('maxU').value);
+            if (isNaN(maxU) || maxU < 1) {
+                alert('Please enter a valid value for \( U \).');
+                return;
+            }
+
+            // Compute distributions
+            const distributionsA = computeDistribution(caseA.n, caseA.gValues, maxU);
+            const distributionsB = computeDistribution(caseB.n, caseB.gValues, maxU);
+
+            // Calculate entropy metrics
+            const metricsA = calculateEntropy(distributionsA);
+            const metricsB = calculateEntropy(distributionsB);
+
+            // Render metrics
+            renderMetrics(metricsA, 'metricsContainerA');
+            renderMetrics(metricsB, 'metricsContainerB');
+
+            // Prepare data for charts
+            const chartDataA = prepareChartData(distributionsA, caseA.n);
+            const chartDataB = prepareChartData(distributionsB, caseB.n);
+
+            // Update charts
+            if (chartA) chartA.destroy();
+            if (chartB) chartB.destroy();
+
+            chartA = new Chart(document.getElementById('chartCaseA'), {
+                type: 'bar',
+                data: chartDataA,
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Residues' } },
+                        y: { title: { display: true, text: 'Frequency' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            chartB = new Chart(document.getElementById('chartCaseB'), {
+                type: 'bar',
+                data: chartDataB,
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Residues' } },
+                        y: { title: { display: true, text: 'Frequency' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Initialize the charts on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCharts();
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
+        </a>
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
+        </div>
+    </nav>
+    <h1>Distributions of \( Y = g^U \mod n \)</h1>
+    <div class="input-container">
+        <label for="maxU">Set Maximum \( U \):</label>
+        <input type="number" id="maxU" value="100" min="1" max="100000">
+        <button onclick="updateCharts()">Update</button>
+    </div>
+    
+    <div class="chart-container">
+        <h2>Case A (\( n = 19 \))</h2>
+        <p>Results for \( g \in \{2, 3, 10, 17\} \):</p>
+        <canvas id="chartCaseA"></canvas>
+        <div id="metricsContainerA" class="metrics-container"></div>
+    </div>
+
+    <div class="chart-container">
+        <h2>Case B (\( n = 15 \))</h2>
+        <p>Results for \( g \in \{3, 6, 9, 12\} \):</p>
+        <canvas id="chartCaseB"></canvas>
+        <div id="metricsContainerB" class="metrics-container"></div>
+    </div>
+    <div class="drive-link">
+        <a href="https://drive.google.com/file/d/1J6Vpyi31r1lFQ2r0Tr3r7QlBAyBeOak6/view?usp=sharing" target="_blank">Theoretical Notions</a>
+    </div>
+</body>
+</html>

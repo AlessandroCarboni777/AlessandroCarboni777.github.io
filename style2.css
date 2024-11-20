@@ -24,6 +24,13 @@ body {
     margin-left: 20px; /* Spazio dal lato sinistro */
     cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
     border: 2px solid #257676; /* Bordo dell'immagine dello stesso colore dell'hover del pulsante Home */
+    transition: transform 0.3s;
+}
+
+.navbar-image:hover {
+    border: 2px solid #1e5b5b;
+    transform: scale(1.2);
+    transition: transform 0.3s;
 }
 
 .home-button {
@@ -120,4 +127,32 @@ body {
 .homework-box:hover {
     transform: scale(1.1);
     transition: transform 0.5s ease; 
+}
+
+.button-container {
+    display: flex; /* Usa il layout flex per distribuire i pulsanti */
+    justify-content: space-between; /* Sposta i pulsanti agli estremi del contenitore */
+    margin-top: 10px; /* Margine superiore */
+    width: 100%; /* Assicurati che il contenitore occupi tutta la larghezza */
+}
+
+.view-button, .extra-button {
+    flex: 1; /* I pulsanti occupano uno spazio uguale */
+    text-align: center; /* Centra il testo */
+    color: white; /* Colore del testo */
+    text-decoration: none; /* Rimuove la sottolineatura */
+    background-color: #309191; /* Colore di sfondo */
+    padding: 10px; /* Spaziatura interna */
+    border-radius: 5px; /* Angoli arrotondati */
+    transition: background-color 0.3s; /* Transizione per il colore di sfondo */
+    margin: 0 5px; /* Spaziatura orizzontale tra i pulsanti */
+}
+
+.view-button:hover, .extra-button:hover {
+    background-color: #257676; /* Colore al passaggio del mouse */
+}
+
+.footer {
+    margin-top: 10vh;
+    background-color: #f4f4f4;
 }

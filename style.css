@@ -114,13 +114,13 @@ body::before {
     align-items: center;
     padding: 20px;
     background-color: #333;
-    border-top: 1px solid white; /* Bordo bianco in alto */
+    border-top: 1px solid white;
     font-size: 18px;
-    margin: 0 auto;
     left: 0;
     right: 0;
-    max-width: 97.4%;
+    overflow-x: hidden; /* Previene la barra di scorrimento */
 }
+
 
 .contact-info {
     text-align: left;
@@ -163,4 +163,10 @@ body {
 
 .content {
     flex: 1;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Previene la barra di scorrimento globale */
 }

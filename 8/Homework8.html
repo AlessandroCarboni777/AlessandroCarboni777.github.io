@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework 8</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="../statistics.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #languageChart {
+            display: none; /* Nasconde il grafico della lingua selezionata fino alla decryption */
+        }
+        #chart-container {
+            justify-content: center; /* Posiziona il grafico centrato inizialmente */
+        }
+        #encrypted-text {
+            display: none; /* Nascondi inizialmente il box del testo cifrato */
+        }
+    </style>
+    <script>
+        let letterChartInstance = null;
+        let languageFrequencyChart = null;
+
+        const italianLetterFrequencies = [
+            11.74, 1.19, 4.49, 3.73, 11.79, 0.95, 1.64, 0.69, 10.14, 0.01, 0.01,
+            6.51, 2.51, 6.88, 9.83, 3.05, 0.51, 6.37, 4.98, 5.62, 3.01, 2.10,
+            0.01, 0.01, 0.02, 0.01
+        ];
+
+        const englishLetterFrequencies = [
+            8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153,
+            0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056,
+            2.758, 0.978, 2.360, 0.150, 1.974, 0.074
+        ];
+
+        // Frequenze dei bigrammi (top 10 per ogni lingua)
+        const italianBigrams = {
+            'QU': 1.02, 'CH': 0.96, 'LL': 0.89, 'GL': 0.78, 'CI': 0.75,
+            'RI': 0.72, 'TI': 0.71, 'SI': 0.70, 'RE': 0.69, 'RA': 0.68
+        };
+
+        const englishBigrams = {
+            'TH': 1.52, 'HE': 1.28, 'IN': 0.94, 'ER': 0.94, 'AN': 0.82,
+            'RE': 0.68, 'ND': 0.63, 'AT': 0.59, 'ON': 0.57, 'NT': 0.56
+        };
+
+        // Frequenze dei trigrammi (top 5 per ogni lingua)
+        const italianTrigrams = {
+            'CHE': 0.48, 'DEL': 0.37, 'ELL': 0.36, 'ALL': 0.35, 'ELL': 0.34
+        };
+
+        const englishTrigrams = {
+            'THE': 1.81, 'AND': 0.73, 'ING': 0.72, 'ENT': 0.42, 'ION': 0.42
+        };
+
+        function encryptText() {
+            const inputText = document.getElementById('user-text').value;
+            const shift = Math.floor(Math.random() * 26) + 1;
+            document.getElementById('shift-value').innerText = `Shift Value: ${shift}`;
+        
+            const encryptedText = caesarShift(inputText, shift);
+            const encryptedTextArea = document.getElementById('encrypted-text');
+        
+            encryptedTextArea.value = encryptedText;
+            encryptedTextArea.style.display = 'block'; // Mostra il box del testo cifrato
+            encryptedTextArea.readOnly = false; // Rende il box editabile
+            encryptedTextArea.scrollIntoView({ behavior: 'smooth' });
+        
+            // Nascondi il box del testo decifrato
+            const decryptedTextArea = document.getElementById('decrypted-text');
+            decryptedTextArea.style.display = 'none';
+        
+            // Distruggi il grafico della lingua (se esiste)
+            if (languageFrequencyChart) {
+                languageFrequencyChart.destroy();
+                document.getElementById('languageChart').style.display = 'none'; // Nascondi il secondo grafico
+            }
+        
+            // Centrare il grafico del testo cifrato inizialmente
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.style.justifyContent = 'center';
+        
+            document.getElementById('chart-container').style.display = 'flex';
+            generateCharts(encryptedText);
+        
+            // Mostra il pulsante "Decryption"
+            document.getElementById('dec-button').style.display = 'inline-block';
+        }
+
+        function encryptRSAtext() {
+            const inputText = document.getElementById('user-text').value;
+            if (!inputText) {
+                alert("Per favore inserisci il testo da cifrare.");
+                return;
+            }
+
+            // Parametri RSA
+            const p = 61;
+            const q = 53;
+            const n = p * q; // n = 3233
+            const phi = (p - 1) * (q - 1); // phi = 3120
+            const e = 17; // e deve essere coprimo con phi e 1 < e < phi
+
+            // Calcola d, l'inverso modolare di e modulo phi
+            const d = modinv(e, phi); // d = 2753
+
+            // Cifra il messaggio e converte l'output in lettere
+            let encryptedText = '';
+            for (let i = 0; i < inputText.length; i++) {
+                const m = inputText.charCodeAt(i); // Ottiene il codice ASCII del carattere
+                const c = modPow(m, e, n); // Cifra m per ottenere c
+
+                // Converti c in una sequenza di lettere
+                encryptedText += numberToLetters(c);
+            }
+
+            // Mostra il testo cifrato
+            const encryptedTextArea = document.getElementById('encrypted-text');
+            encryptedTextArea.value = encryptedText;
+            encryptedTextArea.style.display = 'block'; // Mostra il box del testo cifrato
+            encryptedTextArea.readOnly = false; // Rende il box editabile
+            encryptedTextArea.scrollIntoView({ behavior: 'smooth' });
+
+            // Indica che è stata utilizzata la cifratura RSA
+            document.getElementById('shift-value').innerText = `RSA Encryption Used`;
+
+            // Nascondi il box del testo decifrato
+            const decryptedTextArea = document.getElementById('decrypted-text');
+            decryptedTextArea.style.display = 'none';
+
+            // Centrare il grafico del testo cifrato inizialmente
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.style.justifyContent = 'center';
+
+            // Mostra e genera il grafico delle frequenze
+            document.getElementById('chart-container').style.display = 'flex';
+            generateCharts(encryptedText);
+
+            // Mostra il pulsante "Decryption"
+            document.getElementById('dec-button').style.display = 'inline-block';
+        }
+
+        function decryptText() {
+            const encryptedText = document.getElementById('encrypted-text').value;
+
+            if (!encryptedText) {
+                alert("Nessun testo cifrato disponibile.");
+                return;
+            }
+
+            let bestTotalScore = Infinity;
+            let bestShift = 0;
+            let selectedLanguage = '';
+
+            // Prova tutti i possibili shift
+            for (let shift = 0; shift < 26; shift++) {
+                const decryptedText = caesarShift(encryptedText, -shift);
+
+                // Calcola l'Indice di Coincidenza (IC)
+                const IC = indexOfCoincidence(decryptedText);
+
+                // Calcola il chi-quadro per le lettere per entrambe le lingue
+                const chiEnglish = chiSquaredStatistic(decryptedText, englishLetterFrequencies);
+                const chiItalian = chiSquaredStatistic(decryptedText, italianLetterFrequencies);
+
+                // Analisi dei bigrammi
+                const bigramScoreEnglish = bigramScore(decryptedText, englishBigrams);
+                const bigramScoreItalian = bigramScore(decryptedText, italianBigrams);
+
+                // Analisi dei trigrammi
+                const trigramScoreEnglish = trigramScore(decryptedText, englishTrigrams);
+                const trigramScoreItalian = trigramScore(decryptedText, italianTrigrams);
+
+                // Combina i punteggi per la decisione finale per l'inglese
+                const totalScoreEnglish = chiEnglish - bigramScoreEnglish - trigramScoreEnglish - IC;
+
+                // Combina i punteggi per la decisione finale per l'italiano
+                const totalScoreItalian = chiItalian - bigramScoreItalian - trigramScoreItalian - IC;
+
+                // Verifica se l'inglese ha il punteggio migliore
+                if (totalScoreEnglish < bestTotalScore) {
+                    bestTotalScore = totalScoreEnglish;
+                    bestShift = shift;
+                    selectedLanguage = 'english';
+                }
+
+                // Verifica se l'italiano ha il punteggio migliore
+                if (totalScoreItalian < bestTotalScore) {
+                    bestTotalScore = totalScoreItalian;
+                    bestShift = shift;
+                    selectedLanguage = 'italian';
+                }
+            }
+
+            // Decripta il testo con il miglior shift
+            const finalDecryptedText = caesarShift(encryptedText, -bestShift);
+
+            // Mostra il valore dello shift rilevato
+            document.getElementById('shift-value').innerText = `Detected Shift Value: ${bestShift}`;
+
+            // Mostra il grafico della lingua selezionata
+            const languageFrequencies = selectedLanguage === "english" ? englishLetterFrequencies : italianLetterFrequencies;
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.style.justifyContent = 'space-between'; // Posiziona i due grafici
+            document.getElementById('languageChart').style.display = 'block'; // Mostra il grafico della lingua
+            generateLanguageChart(languageFrequencies, selectedLanguage);
+
+            // Mostra il testo decriptato
+            const decryptedTextArea = document.getElementById('decrypted-text');
+            decryptedTextArea.value = finalDecryptedText;
+            decryptedTextArea.style.display = 'block';
+            decryptedTextArea.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function chiSquaredStatistic(text, languageFrequencies) {
+            const textCounts = Array(26).fill(0);
+            let totalLetters = 0;
+
+            text.toUpperCase().split('').forEach(char => {
+                const charCode = char.charCodeAt(0);
+                if (charCode >= 65 && charCode <= 90) {
+                    textCounts[charCode - 65]++;
+                    totalLetters++;
+                }
+            });
+
+            let chiSquared = 0;
+            for (let i = 0; i < 26; i++) {
+                const observed = textCounts[i];
+                const expected = totalLetters * (languageFrequencies[i] / 100);
+                chiSquared += ((observed - expected) ** 2) / (expected || 1); // Evita divisione per zero
+            }
+
+            return chiSquared;
+        }
+
+        function indexOfCoincidence(text) {
+            const textCounts = Array(26).fill(0);
+            let totalLetters = 0;
+
+            text.toUpperCase().split('').forEach(char => {
+                const charCode = char.charCodeAt(0);
+                if (charCode >= 65 && charCode <= 90) {
+                    textCounts[charCode - 65]++;
+                    totalLetters++;
+                }
+            });
+
+            let sum = 0;
+            for (let i = 0; i < 26; i++) {
+                sum += textCounts[i] * (textCounts[i] - 1);
+            }
+
+            const IC = sum / (totalLetters * (totalLetters - 1) || 1); // Evita divisione per zero
+            return IC;
+        }
+
+        function bigramScore(text, languageBigrams) {
+            const bigramsInText = {};
+            const textUpper = text.toUpperCase().replace(/[^A-Z]/g, '');
+
+            for (let i = 0; i < textUpper.length - 1; i++) {
+                const bigram = textUpper.substring(i, i + 2);
+                bigramsInText[bigram] = (bigramsInText[bigram] || 0) + 1;
+            }
+
+            let score = 0;
+            for (const bigram in languageBigrams) {
+                if (bigramsInText[bigram]) {
+                    score += bigramsInText[bigram] * languageBigrams[bigram];
+                }
+            }
+
+            return score;
+        }
+
+        function trigramScore(text, languageTrigrams) {
+            const trigramsInText = {};
+            const textUpper = text.toUpperCase().replace(/[^A-Z]/g, '');
+
+            for (let i = 0; i < textUpper.length - 2; i++) {
+                const trigram = textUpper.substring(i, i + 3);
+                trigramsInText[trigram] = (trigramsInText[trigram] || 0) + 1;
+            }
+
+            let score = 0;
+            for (const trigram in languageTrigrams) {
+                if (trigramsInText[trigram]) {
+                    score += trigramsInText[trigram] * languageTrigrams[trigram];
+                }
+            }
+
+            return score;
+        }
+
+        function caesarShift(text, shift) {
+            return text.split('').map(char => {
+                if (char.match(/[a-z]/)) {
+                    const code = char.charCodeAt(0) - 97;
+                    const shiftedCode = (code + shift + 26) % 26;
+                    return String.fromCharCode(shiftedCode + 97);
+                } else if (char.match(/[A-Z]/)) {
+                    const code = char.charCodeAt(0) - 65;
+                    const shiftedCode = (code + shift + 26) % 26;
+                    return String.fromCharCode(shiftedCode + 65);
+                } else {
+                    return char;
+                }
+            }).join('');
+        }
+
+        function generateCharts(encryptedText) {
+            const ctxEncrypted = document.getElementById('letterChart').getContext('2d');
+            const letterPercentages = getLetterPercentages(encryptedText);
+
+            if (letterChartInstance) letterChartInstance.destroy();
+
+            letterChartInstance = new Chart(ctxEncrypted, {
+                data: {
+                    labels: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Encrypted Text Percentages (%)',
+                            data: letterPercentages,
+                            backgroundColor: 'rgba(48, 145, 145, 0.5)', // #309191 con trasparenza
+                            borderColor: 'rgba(48, 145, 145, 1)', // #309191 pieno
+                            borderWidth: 1
+                        },
+                        {
+                            type: 'line',
+                            label: 'Encrypted Text Curve',
+                            data: letterPercentages,
+                            borderColor: 'rgba(45, 133, 133, 1)', // #2d8585 pieno
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Percentage (%)' }
+                        },
+                        x: { title: { display: true, text: 'Letters' } }
+                    }
+                }
+            });
+        }
+
+        function generateLanguageChart(frequencies, language) {
+            const ctxLanguage = document.getElementById('languageChart').getContext('2d');
+
+            if (languageFrequencyChart) languageFrequencyChart.destroy();
+
+            const backgroundColor = 'rgba(99, 132, 255, 0.5)'; // Identico per entrambe
+            const borderColor = 'rgba(99, 132, 255, 1)'; // Identico per entrambe
+            const lineColor = 'rgba(79, 105, 204, 1)'; // Colore più scuro
+
+            languageFrequencyChart = new Chart(ctxLanguage, {
+                data: {
+                    labels: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: `${language === "italian" ? "Italian" : "English"} Letter Frequencies (%)`,
+                            data: frequencies,
+                            backgroundColor: backgroundColor,
+                            borderColor: borderColor,
+                            borderWidth: 1
+                        },
+                        {
+                            type: 'line',
+                            label: `${language === "italian" ? "Italian" : "English"} Frequency Curve`,
+                            data: frequencies,
+                            borderColor: lineColor,
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Percentage (%)' }
+                        },
+                        x: { title: { display: true, text: 'Letters' } }
+                    }
+                }
+            });
+        }
+
+        function getLetterPercentages(text) {
+            const occurrences = Array(26).fill(0);
+            let totalLetters = 0;
+
+            text.toUpperCase().split('').forEach(char => {
+                const charCode = char.charCodeAt(0);
+                if (charCode >= 65 && charCode <= 90) {
+                    occurrences[charCode - 65]++;
+                    totalLetters++;
+                }
+            });
+
+            return occurrences.map(count => (totalLetters > 0 ? (count / totalLetters) * 100 : 0));
+        }
+
+        function modPow(base, exponent, modulus) {
+            if (modulus === 1) return 0;
+            let result = 1;
+            base = base % modulus;
+            while (exponent > 0) {
+                if (exponent % 2 === 1) // Se l'esponente è dispari
+                    result = (result * base) % modulus;
+                exponent = exponent >> 1; // exponent = exponent / 2
+                base = (base * base) % modulus;
+            }
+            return result;
+        }
+
+        function egcd(a, b) {
+            if (a === 0) return {gcd: b, x: 0, y: 1};
+            else {
+                const {gcd, x, y} = egcd(b % a, a);
+                return {gcd: gcd, x: y - Math.floor(b / a) * x, y: x};
+            }
+        }
+
+        function modinv(a, m) {
+            const {gcd, x} = egcd(a, m);
+            if (gcd !== 1) {
+                // L'inverso non esiste
+                return null;
+            } else {
+                return (x % m + m) % m;
+            }
+        }
+
+        function numberToLetters(num) {
+            let letters = '';
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+            while (num > 0) {
+                const remainder = num % 26;
+                letters = alphabet[remainder] + letters;
+                num = Math.floor(num / 26);
+            }
+
+            return letters || 'A'; // Ritorna 'A' se num è 0
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('dec-button').style.display = 'none'; // Nasconde il pulsante Decryption all'inizio
+            document.getElementById('encrypted-text').style.display = 'none'; // Nasconde il box del testo cifrato all'inizio
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userText = document.getElementById('user-text');
+            const caesarButton = document.getElementById('caesar-button');
+            const rsaButton = document.getElementById('rsa-button');
+        
+            userText.addEventListener('input', () => {
+                // Abilita i bottoni solo se il testo non è vuoto
+                const isEmpty = userText.value.trim() === '';
+                caesarButton.disabled = isEmpty;
+                rsaButton.disabled = isEmpty;
+            });
+        
+            // Imposta inizialmente i bottoni su disabilitato
+            const isEmpty = userText.value.trim() === '';
+            caesarButton.disabled = isEmpty;
+            rsaButton.disabled = isEmpty;
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
+        </a>
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
+        </div>
+    </nav>
+
+    <h1>Homework 8 - Carboni Alessandro</h1>
+    <h2>Practical Application</h2>
+
+    <div class="text-input-container">
+        <textarea id="user-text" rows="5" cols="50" placeholder="Insert Text Here..."></textarea>
+        <div class="button-container">
+            <button id="caesar-button" onclick="encryptText()" disabled>Caesar Shift</button>
+            <button id="rsa-button" onclick="encryptRSAtext()" disabled>RSA</button>
+        </div>
+        
+        <textarea id="encrypted-text" rows="5" cols="50" placeholder="Encrypted Text..."></textarea>
+        <p id="shift-value"></p>
+    </div>
+
+    <div id="chart-container" style="display: none; justify-content: center; gap: 20px;">
+        <canvas id="letterChart" width="200" height="200"></canvas>
+        <canvas id="languageChart" width="200" height="200"></canvas>
+    </div>
+
+    <div class="text-input-container">
+        <button id="dec-button" onclick="decryptText()">Decryption</button>
+        <textarea id="decrypted-text" rows="5" cols="50" readonly style="display: none;"></textarea>
+    </div>
+    <div class="drive-link">
+        <a href="https://drive.google.com/file/d/1HstJV5pxoxAJtMZwsypvRrSkAOWdqk6T/view?usp=sharing" target="_blank">Theoretical Notions</a>
+    </div>
+</body>
+</html>

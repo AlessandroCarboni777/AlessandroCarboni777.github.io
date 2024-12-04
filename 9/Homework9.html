@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework 9</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="../statistics.png">
+    <script>
+        let totalPoints = 0;
+        let intervalId;
+        let currentSample = 0; // Tiene traccia del campione corrente
+        const allData = []; // Dati di tutti i campioni
+        const allProbabilities = []; // Probabilità di tutti i campioni
+        const allMeans = []; // Medie di tutti i campioni
+        const allVariances = []; // Varianze di tutti i campioni
+        const colors = generateSimilarColors([37, 118, 118], 0.3, 100); // Genera 100 colori RGBA simili
+
+        function createProbabilityTable() {
+            const nIntervals = parseInt(document.getElementById('nIntervals').value);
+            const tableContainer = document.getElementById('probabilityTable');
+            tableContainer.innerHTML = ''; // Resetta il contenuto della tabella
+
+            const table = document.createElement('table');
+            table.className = 'prob-table';
+
+            let row;
+            for (let i = 0; i < nIntervals; i++) {
+                if (i % 5 === 0) row = table.insertRow(); // Nuova riga ogni 5 celle
+
+                const cell = row.insertCell();
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'probability-input';
+                input.min = '0';
+                input.max = '1';
+                input.step = '0.1';
+                input.value = (Math.random().toFixed(1)); // Valore casuale tra 0 e 1
+                cell.appendChild(input);
+            }
+
+            tableContainer.appendChild(table);
+        }
+
+        function startGraph() {
+            clearInterval(intervalId); // Ferma eventuali intervalli precedenti
+            const nIntervals = parseInt(document.getElementById('nIntervals').value);
+            const numSamples = parseInt(document.getElementById('numSamples').value);
+            totalPoints = parseInt(document.getElementById('points').value);
+
+            // Reset dei dati per tutti i campioni
+            allData.length = 0;
+            allProbabilities.length = 0;
+            allMeans.length = 0;
+            allVariances.length = 0;
+
+            for (let i = 0; i < numSamples; i++) {
+                allData.push(new Array(nIntervals).fill(0)); // Inizializza i dati per ogni campione
+                allProbabilities.push(generateRandomProbabilities(nIntervals)); // Genera probabilità casuali
+            }
+
+            currentSample = 0;
+
+            // Mostra il contenitore del grafico
+            document.querySelector(".graph-container").style.display = "block";
+            document.querySelector(".graph-container").scrollIntoView({ behavior: "smooth", block: "center" });
+
+            // Inizia a disegnare gli istogrammi per ogni campione
+            intervalId = setInterval(() => {
+                if (currentSample < numSamples) {
+                    simulateOccurrences(allData[currentSample], allProbabilities[currentSample], totalPoints);
+                    calculateStatistics(allData[currentSample], currentSample); // Aggiorna le statistiche
+                    drawHistogram(allData, currentSample);
+                    currentSample++;
+                } else {
+                    clearInterval(intervalId); // Ferma quando tutti i campioni sono stati disegnati
+                }
+            }, 100);
+        }
+
+        function generateRandomProbabilities(nIntervals) {
+            return Array.from({ length: nIntervals }, () => parseFloat(Math.random().toFixed(1))); // Genera probabilità casuali in [0,1]
+        }
+
+        function simulateOccurrences(data, probabilities, points) {
+            const totalProbability = probabilities.reduce((sum, p) => sum + p, 0);
+
+            for (let p = 0; p < points; p++) {
+                const rand = Math.random() * totalProbability;
+                let cumulativeProbability = 0;
+
+                for (let j = 0; j < data.length; j++) {
+                    cumulativeProbability += probabilities[j];
+                    if (rand <= cumulativeProbability) {
+                        data[j]++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function calculateStatistics(data, sampleIndex) {
+            const mean = calculateMean(data);
+            const variance = calculateVariance(data, mean);
+
+            allMeans[sampleIndex] = mean;
+            allVariances[sampleIndex] = variance;
+        }
+
+        function calculateMean(data) {
+            const totalOccurrences = data.reduce((acc, val) => acc + val, 0);
+            return totalOccurrences
+                ? data.reduce((acc, count, index) => acc + count * index, 0) / totalOccurrences
+                : 0;
+        }
+
+        function calculateVariance(data, mean) {
+            const totalOccurrences = data.reduce((acc, val) => acc + val, 0);
+            return totalOccurrences
+                ? data.reduce((acc, count, index) => acc + count * Math.pow(index - mean, 2), 0) / totalOccurrences
+                : 0;
+        }
+
+        function calculateArrayVariance(array) {
+            const mean = array.reduce((a, b) => a + b, 0) / array.length;
+            return array.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / array.length;
+        }
+
+        function drawHistogram(allData, sampleIndex) {
+            const canvas = document.getElementById("combinedGraph");
+            const ctx = canvas.getContext("2d");
+
+            const padding = 50;
+            const nIntervals = allData[0].length;
+            const barWidth = (canvas.width - 2 * padding) / nIntervals;
+
+            // Trova il numero massimo di occorrenze per normalizzare le altezze delle barre
+            const maxOccurrences = Math.max(...allData.flat());
+
+            if (sampleIndex === 0) {
+                // Pulisci il canvas solo al primo campione
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Disegna l'asse Y
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, canvas.height - padding);
+                ctx.stroke();
+
+                // Etichette asse Y
+                ctx.font = "12px Arial";
+                ctx.fillStyle = "#000";
+                const yTicks = maxOccurrences + 1;
+                for (let i = 0; i <= maxOccurrences; i++) {
+                    const y = canvas.height - padding - (i * (canvas.height - 2 * padding) / yTicks);
+                    ctx.fillText(i, padding - 30, y - 10);
+                }
+
+                // Disegna l'asse X
+                ctx.beginPath();
+                ctx.moveTo(padding, canvas.height - padding);
+                ctx.lineTo(canvas.width - padding, canvas.height - padding);
+                ctx.stroke();
+            }
+
+            // Ripristina le etichette dell'asse X
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "#000";
+            const labelFrequency = Math.ceil(nIntervals / 15) || 1;
+            for (let i = 0; i < nIntervals; i++) {
+                if (i % labelFrequency === 0) {
+                    const x = padding + i * barWidth + barWidth / 2;
+                    const label = `${i + 1}`;
+                    ctx.fillText(label, x - 10, canvas.height - padding + 20);
+                }
+            }
+
+            // Disegna le barre dell'istogramma per il campione corrente
+            const data = allData[sampleIndex];
+            ctx.fillStyle = colors[sampleIndex % colors.length];
+            data.forEach((value, intervalIndex) => {
+                const barHeight = (value / maxOccurrences) * (canvas.height - 2 * padding);
+                const x = padding + intervalIndex * barWidth;
+
+                ctx.fillRect(
+                    x,
+                    canvas.height - padding - barHeight,
+                    barWidth - 2,
+                    barHeight
+                );
+            });
+
+            // Aggiorna le statistiche sotto il grafico
+            updateStatistics(ctx, padding, canvas);
+        }
+
+        function updateStatistics(ctx, padding, canvas) {
+            // Calcola media delle medie, media delle varianze, varianza delle medie, varianza delle varianze
+            const meanOfMeans = allMeans.reduce((a, b) => a + b, 0) / allMeans.length;
+            const meanOfVariances = allVariances.reduce((a, b) => a + b, 0) / allVariances.length;
+            const varianceOfMeans = calculateArrayVariance(allMeans);
+            const varianceOfVariances = calculateArrayVariance(allVariances);
+
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 14px Arial";
+
+            // Posizioni per le quattro statistiche
+            const statsPositions = [
+                { x: canvas.width - padding - 900, y: canvas.height - 5 }, // Mean of Means
+                { x: canvas.width - padding - 670, y: canvas.height - 5 }, // Mean of Variances
+                { x: canvas.width - padding - 420, y: canvas.height - 5 }, // Variance of Means
+                { x: canvas.width - padding - 170, y: canvas.height - 5 }  // Variance of Variances
+            ];
+
+            // Pulisci le precedenti statistiche
+            statsPositions.forEach(pos => {
+                ctx.clearRect(pos.x, pos.y - 15, 200, 20);
+            });
+
+            // Mostra le statistiche nell'ordine specificato
+            ctx.fillText(`Mean of Means: ${meanOfMeans.toFixed(2)}`, statsPositions[0].x, statsPositions[0].y);
+            ctx.fillText(`Mean of Variances: ${meanOfVariances.toFixed(2)}`, statsPositions[1].x, statsPositions[1].y);
+            ctx.fillText(`Variance of Means: ${varianceOfMeans.toFixed(2)}`, statsPositions[2].x, statsPositions[2].y);
+            ctx.fillText(`Variance of Variances: ${varianceOfVariances.toFixed(2)}`, statsPositions[3].x, statsPositions[3].y);
+        }
+
+        function generateSimilarColors(baseColor, alpha, count) {
+            const [baseR, baseG, baseB] = baseColor;
+            return Array.from({ length: count }, () => {
+                const variation = 20; // Variazione massima per RGB
+                const r = Math.min(Math.max(baseR + Math.floor(Math.random() * variation - variation / 2), 0), 255);
+                const g = Math.min(Math.max(baseG + Math.floor(Math.random() * variation - variation / 2), 0), 255);
+                const b = Math.min(Math.max(baseB + Math.floor(Math.random() * variation - variation / 2), 0), 255);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            });
+        }
+    </script>
+</head>
+<body onload="createProbabilityTable();">
+    <nav class="navbar">
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
+        </a>
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
+        </div>
+    </nav>
+
+    <h1>Homework 9 - Carboni Alessandro</h1>
+    <h2>Practical Application</h2>
+    <form onsubmit="event.preventDefault(); startGraph();">
+        <label for="points">Number of Occurrences</label>
+        <input type="number" id="points" name="points" min="1" max="100000" value="100" required>
+    
+        <label for="nIntervals">Number of Intervals</label>
+        <input type="number" id="nIntervals" name="nIntervals" min="3" max="100" value="10" required onchange="createProbabilityTable()">
+    
+        <label for="numSamples">Number of Samples</label>
+        <input type="number" id="numSamples" name="numSamples" min="1" max="100" value="10" required>
+    
+        <button type="submit" id="drawButton">Start Graph</button>
+    </form>
+
+    <div class="graph-container" style="display: none; text-align: center;">
+        <canvas id="combinedGraph" width="1000" height="650" style="margin: auto;"></canvas>
+    </div>
+    
+    <div class="drive-link">
+        <a href="https://drive.google.com/file/d/1sqzyS3-vYqC7bWe_qlyBIAP3YzveWUQ4/view?usp=sharing" target="_blank">Theoretical Notions</a>
+    </div>
+    <div class="optional-link">
+        <a href="Optional.html" target="_blank">Optional Homework</a>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Optional Homework 9</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="../statistics.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let letterChartInstance = null;
+        let languageFrequencyChart = null;
+        let substitutionKey = null;
+        let reverseSubstitutionKey = null; // Per la decifratura con chiave pubblica
+
+        const italianLetterFrequencies = [
+            11.74, 1.19, 4.49, 3.73, 11.79, 0.95, 1.64, 0.69, 10.14, 0.01, 0.01,
+            6.51, 2.51, 6.88, 9.83, 3.05, 0.51, 6.37, 4.98, 5.62, 3.01, 2.10,
+            0.01, 0.01, 0.02, 0.01
+        ];
+
+        function generateSubstitutionKey() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            const shuffled = shuffle(letters.slice());
+
+            const key = {};
+            const reverseKey = {};
+            for (let i = 0; i < letters.length; i++) {
+                key[letters[i]] = shuffled[i];
+                reverseKey[shuffled[i]] = letters[i];
+            }
+            substitutionKey = key;
+            reverseSubstitutionKey = reverseKey;
+        }
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+
+                [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+            }
+
+            return array;
+        }
+
+        function substitutionEncrypt(text, key) {
+            return text.split('').map(char => {
+                const upperChar = char.toUpperCase();
+                if (upperChar >= 'A' && upperChar <= 'Z') {
+                    const encryptedChar = key[upperChar];
+                    return char === char.toUpperCase() ? encryptedChar : encryptedChar.toLowerCase();
+                } else {
+                    return char;
+                }
+            }).join('');
+        }
+
+        function substitutionDecrypt(text, key) {
+            // key è la mappatura inversa
+            return text.split('').map(char => {
+                const upperChar = char.toUpperCase();
+                if (upperChar >= 'A' && upperChar <= 'Z') {
+                    const decryptedChar = key[upperChar];
+                    return char === char.toUpperCase() ? decryptedChar : decryptedChar.toLowerCase();
+                } else {
+                    return char;
+                }
+            }).join('');
+        }
+
+        function invertText(text) {
+            return text.split('').reverse().join('');
+        }
+
+        function xorText(text) {
+            // Per semplicità, applichiamo uno XOR con una chiave fissa
+            const xorKey = 42; // Numero arbitrario
+            return text.split('').map(char => {
+                const charCode = char.charCodeAt(0);
+                const xoredCharCode = charCode ^ xorKey;
+                return String.fromCharCode(xoredCharCode);
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inizializza gli event listeners
+            const userText = document.getElementById('user-text');
+            const modifiedText = document.getElementById('modified-text');
+
+            const substitutionButton = document.getElementById('substitution-button');
+            const invertButton = document.getElementById('invert-button');
+            const xorButton = document.getElementById('xor-button');
+
+            const decryptStatisticsButton = document.getElementById('decrypt-statistics-button');
+            const decryptKeyButton = document.getElementById('decrypt-key-button');
+
+            // Abilita il bottone di sostituzione solo se c'è del testo
+            userText.addEventListener('input', () => {
+                const isEmpty = userText.value.trim() === '';
+                substitutionButton.disabled = isEmpty;
+            });
+
+            // Evento per il bottone di sostituzione
+            substitutionButton.addEventListener('click', () => {
+                generateSubstitutionKey();
+                const text = userText.value;
+                const encryptedText = substitutionEncrypt(text, substitutionKey);
+                modifiedText.value = encryptedText;
+                // Abilita i bottoni Inverti e XOR
+                invertButton.disabled = false;
+                xorButton.disabled = false;
+                // Nascondi il testo decifrato e i grafici
+                document.getElementById('decrypted-text').style.display = 'none';
+                document.getElementById('chart-container').style.display = 'none';
+                document.getElementById('languageChart').style.display = 'none';
+            });
+
+            // Evento per il bottone Inverti
+            invertButton.addEventListener('click', () => {
+                const text = modifiedText.value;
+                const invertedText = invertText(text);
+                modifiedText.value = invertedText;
+                // Nascondi il testo decifrato e i grafici
+                document.getElementById('decrypted-text').style.display = 'none';
+                document.getElementById('chart-container').style.display = 'none';
+                document.getElementById('languageChart').style.display = 'none';
+            });
+
+            // Evento per il bottone XOR
+            xorButton.addEventListener('click', () => {
+                const text = modifiedText.value;
+                const xoredText = xorText(text);
+                modifiedText.value = xoredText;
+                // Nascondi il testo decifrato e i grafici
+                document.getElementById('decrypted-text').style.display = 'none';
+                document.getElementById('chart-container').style.display = 'none';
+                document.getElementById('languageChart').style.display = 'none';
+            });
+
+            // Evento per il bottone Decifra con Statistica
+            decryptStatisticsButton.addEventListener('click', () => {
+                const text = modifiedText.value;
+                if (!text) {
+                    alert("Nessun testo da decifrare disponibile.");
+                    return;
+                }
+                const decryptedText = decryptUsingStatistics(text);
+                const decryptedTextArea = document.getElementById('decrypted-text');
+                decryptedTextArea.value = decryptedText;
+                decryptedTextArea.style.display = 'block';
+                decryptedTextArea.scrollIntoView({ behavior: 'smooth' });
+                // Mostra i grafici
+                document.getElementById('chart-container').style.display = 'flex';
+                generateCharts(text);
+            });
+
+            // Evento per il bottone Decifra con Chiave Pubblica
+            decryptKeyButton.addEventListener('click', () => {
+                const text = modifiedText.value;
+                if (!text) {
+                    alert("Nessun testo da decifrare disponibile.");
+                    return;
+                }
+                // Inverte il testo
+                const invertedText = invertText(text);
+                // Decifra usando la chiave inversa
+                const decryptedText = substitutionDecrypt(invertedText, reverseSubstitutionKey);
+                const decryptedTextArea = document.getElementById('decrypted-text');
+                decryptedTextArea.value = decryptedText;
+                decryptedTextArea.style.display = 'block';
+                decryptedTextArea.scrollIntoView({ behavior: 'smooth' });
+                // Nascondi i grafici
+                document.getElementById('chart-container').style.display = 'none';
+            });
+
+            // Disabilita inizialmente i bottoni Inverti e XOR
+            invertButton.disabled = true;
+            xorButton.disabled = true;
+            substitutionButton.disabled = true;
+
+        });
+
+        function decryptUsingStatistics(encryptedText) {
+            const encryptedFrequencies = getLetterFrequencies(encryptedText);
+
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            const encryptedLettersByFreq = letters.slice().sort((a, b) => encryptedFrequencies[b] - encryptedFrequencies[a]);
+
+            const italianFrequenciesObj = {};
+            letters.forEach((letter, index) => {
+                italianFrequenciesObj[letter] = italianLetterFrequencies[index];
+            });
+            const italianLettersByFreq = letters.slice().sort((a, b) => italianFrequenciesObj[b] - italianFrequenciesObj[a]);
+
+            const mapping = {};
+            for (let i = 0; i < letters.length; i++) {
+                mapping[encryptedLettersByFreq[i]] = italianLettersByFreq[i];
+            }
+
+            const decryptedText = encryptedText.split('').map(char => {
+                const upperChar = char.toUpperCase();
+                if (upperChar >= 'A' && upperChar <= 'Z') {
+                    const decryptedChar = mapping[upperChar];
+                    return char === char.toUpperCase() ? decryptedChar : decryptedChar.toLowerCase();
+                } else {
+                    return char;
+                }
+            }).join('');
+
+            // Mostra la mappatura delle lettere
+            const mappingDisplay = letters.map(l => `${l}→${mapping[l]}`).join(', ');
+            
+
+            return decryptedText;
+        }
+
+        function getLetterFrequencies(text) {
+            const frequencies = {};
+            const totalLetters = text.toUpperCase().split('').filter(char => char >= 'A' && char <= 'Z').length;
+
+            for (let i = 0; i < 26; i++) {
+                frequencies[String.fromCharCode(65 + i)] = 0;
+            }
+
+            text.toUpperCase().split('').forEach(char => {
+                if (char >= 'A' && char <= 'Z') {
+                    frequencies[char]++;
+                }
+            });
+
+            for (let letter in frequencies) {
+                frequencies[letter] = frequencies[letter] / totalLetters;
+            }
+
+            return frequencies;
+        }
+
+        function getLetterPercentages(text) {
+            const frequencies = getLetterFrequencies(text);
+            const percentages = [];
+            for (let i = 0; i < 26; i++) {
+                const letter = String.fromCharCode(65 + i);
+                percentages.push(frequencies[letter] * 100);
+            }
+            return percentages;
+        }
+
+        function generateCharts(encryptedText) {
+            const ctxEncrypted = document.getElementById('letterChart').getContext('2d');
+            const letterPercentages = getLetterPercentages(encryptedText);
+
+            if (letterChartInstance) letterChartInstance.destroy();
+
+            letterChartInstance = new Chart(ctxEncrypted, {
+                data: {
+                    labels: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Percentuali Testo Cifrato (%)',
+                            data: letterPercentages,
+                            backgroundColor: 'rgba(48, 145, 145, 0.5)',
+                            borderColor: 'rgba(48, 145, 145, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            type: 'line',
+                            label: 'Curva Testo Cifrato',
+                            data: letterPercentages,
+                            borderColor: 'rgba(45, 133, 133, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Percentuale (%)' }
+                        },
+                        x: { title: { display: true, text: 'Lettere' } }
+                    }
+                }
+            });
+
+            generateLanguageChart(italianLetterFrequencies, 'italian');
+        }
+
+        function generateLanguageChart(frequencies, language) {
+            const ctxLanguage = document.getElementById('languageChart').getContext('2d');
+
+            if (languageFrequencyChart) languageFrequencyChart.destroy();
+
+            const backgroundColor = 'rgba(99, 132, 255, 0.5)';
+            const borderColor = 'rgba(99, 132, 255, 1)';
+            const lineColor = 'rgba(79, 105, 204, 1)';
+
+            languageFrequencyChart = new Chart(ctxLanguage, {
+                data: {
+                    labels: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: `Frequenze Lettere ${language === "italian" ? "Italiano" : "Inglese"} (%)`,
+                            data: frequencies,
+                            backgroundColor: backgroundColor,
+                            borderColor: borderColor,
+                            borderWidth: 1
+                        },
+                        {
+                            type: 'line',
+                            label: `Curva Frequenza ${language === "italian" ? "Italiano" : "Inglese"}`,
+                            data: frequencies,
+                            borderColor: lineColor,
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Percentuale (%)' }
+                        },
+                        x: { title: { display: true, text: 'Lettere' } }
+                    }
+                }
+            });
+
+            document.getElementById('languageChart').style.display = 'block';
+        }
+
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
+        </a>
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
+        </div>
+    </nav>
+
+    <h1>Optional Homework 9 - Carboni Alessandro</h1>
+    <h2>Practical Application</h2>
+
+    <div class="text-input-container">
+        <textarea id="user-text" rows="5" cols="50" placeholder="Insert Text Here..."></textarea>
+    </div>
+
+    <div id="modified-text-container">
+        <textarea id="modified-text" rows="5" cols="50" placeholder="Modified Text..."></textarea>
+        <div id="button-box">
+            <button id="substitution-button" disabled>Replacement</button><br><br>
+            <button id="invert-button" disabled>Reverse</button><br><br>
+            <button id="xor-button" disabled>XOR</button>
+        </div>
+    </div>
+
+    <div id="chart-container">
+        <canvas id="letterChart" width="200" height="200"></canvas>
+        <canvas id="languageChart" width="200" height="200"></canvas>
+    </div>
+
+    <div class="text-input-container">
+        <button id="decrypt-statistics-button" class="decrypt-button">Decrypt with Statistics</button>
+        <button id="decrypt-key-button" class="decrypt-button">Decrypt with Public Key</button>
+        <textarea id="decrypted-text" rows="5" cols="50" readonly placeholder="Testo Decifrato..."></textarea>
+        <p id="shift-value"></p>
+    </div>
+    <div class="drive-link">
+        <a href="https://drive.google.com/file/d/1Pyj-bW7h5PiexafDEHZK02G0u-Oqj4Ua/view?usp=sharing" target="_blank">Theoretical Notions</a>
+    </div>
+</body>
+</html>

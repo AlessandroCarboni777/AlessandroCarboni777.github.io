@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework 10</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="../index.html">
+            <img src="../foto.png" alt="Logo" class="navbar-logo">
+        </a>
+        <div class="navbar-links">
+            <a href="../homeworks.html" class="navbar-item">Homework</a>
+        </div>
+    </nav>
+
+    <h1>Homework 10 - Carboni Alessandro</h1>
+    <h2>Practical Application</h2>
+
+    <div class="button-container">
+        <button id="plot-continuous">Plot Continuous Function</button>
+        <button id="plot-discontinuous">Plot Discontinuous Function</button>
+    </div>
+
+    <div class="canvas-container" id="canvas-container" style="display: none; text-align: center;">
+        <h3 id="function-display"></h3>
+        <canvas id="function-canvas" width="800" height="400"></canvas>
+    </div>
+
+    <div class="integration-container" style="display: none; margin-top: 20px;">
+        <div class="integration-graph">
+            <h3>Integrazione alla Riemann</h3>
+            <canvas id="riemann-canvas" width="500" height="300"></canvas>
+            <p id="riemann-value" class="integration-result"></p>
+        </div>
+        <div class="integration-graph">
+            <h3>Integrazione di Lebesgue-Stieltjes</h3>
+            <canvas id="lebesgue-canvas" width="500" height="300"></canvas>
+            <p id="lebesgue-value" class="integration-result"></p>
+        </div>
+    </div>
+
+    <script>
+        const continuousFunctions = [
+            { exec: "Math.sin(x)", latex: "\\sin(x)" },
+            { exec: "Math.cos(x)", latex: "\\cos(x)" },
+            { exec: "x**2", latex: "x^2" },
+            { exec: "Math.exp(x / 5)", latex: "e^{x / 5}" },
+            { exec: "Math.sqrt(Math.abs(x))", latex: "\\sqrt{|x|}" },
+            { exec: "Math.log(Math.abs(x) + 1)", latex: "\\ln(|x| + 1)" },
+            { exec: "Math.tan(x / 10)", latex: "\\tan(x / 10)" },
+            { exec: "Math.pow(x, 3) - 2*x", latex: "x^3 - 2x" },
+            { exec: "1 / (x**2 + 1)", latex: "\\frac{1}{x^2 + 1}" }
+        ];
+
+        const discontinuousFunctions = [
+            { exec: "(x % 2 === 0 ? Math.random() * 10 : Math.sin(x))", latex: "(x \\mod 2 = 0 ? \\text{random} \\cdot 10 : \\sin(x))" },
+            { exec: "(Math.floor(x) % 2 === 0 ? 10 : -10)", latex: "(\\lfloor x \\rfloor \\mod 2 = 0 ? 10 : -10)" },
+            { exec: "(x < 0 ? Math.sin(x) : Math.random() * 10 - 5)", latex: "(x < 0 ? \\sin(x) : \\text{random} \\cdot 10 - 5)" },
+            { exec: "(x < 0 ? -10 : (x % 1 === 0 ? 10 : 0))", latex: "(x < 0 ? -10 : (x \\mod 1 = 0 ? 10 : 0))" },
+            { exec: "(Math.abs(x % 5) < 1 ? 10 : -10)", latex: "(|x \\mod 5| < 1 ? 10 : -10)" },
+            { exec: "(x < -5 ? Math.random() * 5 : (x > 5 ? Math.sin(x) * 5 : 0))", latex: "(x < -5 ? \\text{random} \\cdot 5 : (x > 5 ? \\sin(x) \\cdot 5 : 0))" },
+            { exec: "(x < 0 ? Math.cos(x) * 5 : Math.sin(x) * 5)", latex: "(x < 0 ? \\cos(x) \\cdot 5 : \\sin(x) \\cdot 5)" },
+        ];
+
+        const xMin = -10, xMax = 10, yMin = -10, yMax = 10;
+
+        // FUNZIONI DI DISEGNO (dal "nuovo" codice)
+        function mapXtoCanvas(x, xMin, xMax, width) {
+            return (x - xMin) / (xMax - xMin) * width;
+        }
+
+        function mapYtoCanvas(y, yMin, yMax, height) {
+            return height - (y - yMin) / (yMax - yMin) * height;
+        }
+
+        function drawAxes(ctx, xMin, xMax, yMin, yMax) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            const width = ctx.canvas.width;
+            const height = ctx.canvas.height;
+
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+
+            // Asse X
+            const xAxisY = mapYtoCanvas(0, yMin, yMax, height);
+            ctx.moveTo(0, xAxisY);
+            ctx.lineTo(width, xAxisY);
+            ctx.lineTo(width - 10, xAxisY - 5);
+            ctx.moveTo(width, xAxisY);
+            ctx.lineTo(width - 10, xAxisY + 5);
+
+            // Asse Y
+            const yAxisX = mapXtoCanvas(0, xMin, xMax, width);
+            ctx.moveTo(yAxisX, height);
+            ctx.lineTo(yAxisX, 0);
+            ctx.lineTo(yAxisX - 5, 10);
+            ctx.moveTo(yAxisX, 0);
+            ctx.lineTo(yAxisX + 5, 10);
+
+            ctx.stroke();
+
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "#000";
+            ctx.fillText("X", width - 15, xAxisY - 10);
+            ctx.fillText("Y", yAxisX + 10, 15);
+        }
+
+        function drawGraph(ctx, func, xMin, xMax, yMin, yMax) {
+            drawAxes(ctx, xMin, xMax, yMin, yMax);
+
+            const width = ctx.canvas.width;
+            const height = ctx.canvas.height;
+
+            ctx.strokeStyle = "#309191";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            const steps = 1000;
+            const dx = (xMax - xMin) / steps;
+            let firstPoint = true;
+
+            for (let i = 0; i <= steps; i++) {
+                const x = xMin + i * dx;
+                const y = func(x);
+                const cx = mapXtoCanvas(x, xMin, xMax, width);
+                const cy = mapYtoCanvas(y, yMin, yMax, height);
+                if (firstPoint) {
+                    ctx.moveTo(cx, cy);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke();
+        }
+
+        // Disegno Riemann (dal nuovo codice)
+        function drawRiemannIntegration(ctx, func, xMin, xMax, yMin, yMax, numBars) {
+            drawAxes(ctx, xMin, xMax, yMin, yMax);
+            const width = ctx.canvas.width;
+            const height = ctx.canvas.height;
+
+            const barWidth = (xMax - xMin) / numBars;
+            ctx.strokeStyle = "rgba(50, 150, 250, 1)";
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < numBars; i++) {
+                const xStart = xMin + i * barWidth;
+                const xMid = xStart + barWidth / 2;
+                const yValue = func(xMid);
+
+                const cX = mapXtoCanvas(xStart, xMin, xMax, width);
+                const cW = mapXtoCanvas(xStart + barWidth, xMin, xMax, width) - cX;
+                const cY = mapYtoCanvas(yValue, yMin, yMax, height);
+                const baseY = mapYtoCanvas(0, yMin, yMax, height);
+
+                ctx.strokeRect(cX, cY, cW, baseY - cY);
+            }
+        }
+
+        // Disegno Lebesgue (dal nuovo codice)
+        function drawLebesgueIntegration(ctx, func, xMin, xMax, yMin, yMax, nY = 50, nX = 200) {
+            drawAxes(ctx, xMin, xMax, yMin, yMax);
+            const width = ctx.canvas.width;
+            const height = ctx.canvas.height;
+
+            const dx = (xMax - xMin) / nX;
+            const dy = (yMax - yMin) / nY;
+
+            const xSamples = [];
+            for (let i = 0; i <= nX; i++) {
+                xSamples[i] = func(xMin + i*dx);
+            }
+
+            ctx.strokeStyle = "rgba(150, 50, 250, 1)";
+            ctx.lineWidth = 1;
+
+            for (let j = 0; j < nY; j++) {
+                const yStart = yMin + j * dy;
+                const yEnd = yStart + dy;
+
+                let startIndex = null;
+                for (let i = 0; i <= nX; i++) {
+                    const val = xSamples[i];
+                    const inRange = (val >= yStart && val < yEnd);
+                    if (inRange && startIndex === null) {
+                        startIndex = i;
+                    } else if (!inRange && startIndex !== null) {
+                        const xCount = i - startIndex;
+                        const xLen = xCount * dx;
+                        const cX = mapXtoCanvas(xMin + startIndex*dx, xMin, xMax, width);
+                        const cW = xLen / (xMax - xMin) * width;
+                        const cY = mapYtoCanvas(yEnd, yMin, yMax, height);
+                        const cH = mapYtoCanvas(yStart, yMin, yMax, height) - cY;
+                        ctx.strokeRect(cX, cY, cW, cH);
+                        startIndex = null;
+                    }
+                }
+
+                if (startIndex !== null) {
+                    const xCount = (nX + 1 - startIndex);
+                    const xLen = xCount * dx;
+                    const cX = mapXtoCanvas(xMin + startIndex*dx, xMin, xMax, width);
+                    const cW = xLen / (xMax - xMin) * width;
+                    const cY = mapYtoCanvas(yEnd, yMin, yMax, height);
+                    const cH = mapYtoCanvas(yStart, yMin, yMax, height) - cY;
+                    ctx.strokeRect(cX, cY, cW, cH);
+                }
+            }
+        }
+
+        // METODI DI CALCOLO (ripristino del vecchio metodo di calcolo)
+        // Dal primo codice fornito inizialmente: 
+        // Metodo Riemann dal primo codice
+        function calculateRiemannIntegral(func, xMin, xMax, n = 10000) {
+            // Metodo dei rettangoli centrati
+            const dx = (xMax - xMin) / n;
+            let integral = 0;
+            for (let i = 0; i < n; i++) {
+                const x_mid = xMin + (i + 0.5) * dx;
+                integral += func(x_mid) * dx;
+            }
+            return integral;
+        }
+
+        // Metodo Lebesgue dal primo codice
+        function calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, nY = 1000, nX = 1000) {
+            // Approccio dal primo codice:
+            // 1. Campioniamo la funzione su nX punti.
+            // 2. Dividiamo l'intervallo [yMin, yMax] in nY intervalli.
+            // 3. Contiamo quanti x cadono in ogni intervallo di y.
+            // 4. Integrale = sum di (lunghezza in x * lunghezza in y) per ogni "fascia".
+
+            const dx = (xMax - xMin) / nX;
+            const dy = (yMax - yMin) / nY;
+
+            const samples = [];
+            let x_current = xMin;
+            for (let i = 0; i < nX; i++) {
+                samples.push(func(x_current));
+                x_current += dx;
+            }
+
+            let integral = 0;
+            for (let j = 0; j < nY; j++) {
+                const yStart = yMin + j * dy;
+                const yEnd = yStart + dy;
+
+                let count = 0;
+                for (let k = 0; k < nX; k++) {
+                    const val = samples[k];
+                    if (val >= yStart && val < yEnd) {
+                        count++;
+                    }
+                }
+                const xLength = count * dx; 
+                integral += xLength * dy;
+            }
+
+            return integral;
+        }
+
+        function drawFunctionAndIntegrations(func, latexFunction, isContinuous) {
+            // Disegno funzione
+            const functionCanvas = document.getElementById("function-canvas");
+            const ctxFunction = functionCanvas.getContext("2d");
+            drawGraph(ctxFunction, func, xMin, xMax, yMin, yMax);
+
+            const functionDisplay = document.getElementById("function-display");
+            functionDisplay.textContent = `\\(f(x) = ${latexFunction}\\)`;
+            MathJax.typeset();
+
+            const riemannCanvas = document.getElementById("riemann-canvas");
+            const ctxRiemann = riemannCanvas.getContext("2d");
+
+            const lebesgueCanvas = document.getElementById("lebesgue-canvas");
+            const ctxLebesgue = lebesgueCanvas.getContext("2d");
+
+            let riemannValueElem = document.getElementById("riemann-value");
+            let lebesgueValueElem = document.getElementById("lebesgue-value");
+
+            // Disegno SEMPRE i due grafici
+            drawRiemannIntegration(ctxRiemann, func, xMin, xMax, yMin, yMax, 50);
+            drawLebesgueIntegration(ctxLebesgue, func, xMin, xMax, yMin, yMax, 50, 200);
+
+            if (isContinuous) {
+                // Calcolo integrali con il vecchio metodo
+                const riemannResult = calculateRiemannIntegral(func, xMin, xMax, 10000).toFixed(4);
+                riemannValueElem.innerHTML = `Valore Integrazione (Riemann): ${riemannResult}`;
+
+                const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 1000, 1000).toFixed(4);
+                lebesgueValueElem.innerHTML = `Valore Integrazione (Lebesgue): ${lebesgueResult}`;
+            } else {
+                // Funzione discontinua
+                riemannValueElem.innerHTML = "Impossibile calcolare il valore di integrazione (Riemann)";
+
+                const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 1000, 1000).toFixed(4);
+                lebesgueValueElem.innerHTML = `Valore Integrazione (Lebesgue): ${lebesgueResult}`;
+            }
+
+            document.querySelector(".canvas-container").style.display = "block";
+            document.querySelector(".integration-container").style.display = "flex";
+        }
+
+        document.getElementById("plot-continuous").addEventListener("click", () => {
+            const randomIndex = Math.floor(Math.random() * continuousFunctions.length);
+            const { exec, latex } = continuousFunctions[randomIndex];
+            drawFunctionAndIntegrations(new Function("x", `return ${exec}`), latex, true);
+        });
+
+        document.getElementById("plot-discontinuous").addEventListener("click", () => {
+            const randomIndex = Math.floor(Math.random() * discontinuousFunctions.length);
+            const { exec, latex } = discontinuousFunctions[randomIndex];
+            drawFunctionAndIntegrations(new Function("x", `return ${exec}`), latex, false);
+        });
+    </script>
+</body>
+</html>

@@ -58,18 +58,14 @@
         ];
 
         const discontinuousFunctions = [
-            { exec: "(x % 2 === 0 ? Math.random() * 10 : Math.sin(x))", latex: "(x \\mod 2 = 0 ? \\text{random} \\cdot 10 : \\sin(x))" },
-            { exec: "(Math.floor(x) % 2 === 0 ? 10 : -10)", latex: "(\\lfloor x \\rfloor \\mod 2 = 0 ? 10 : -10)" },
-            { exec: "(x < 0 ? Math.sin(x) : Math.random() * 10 - 5)", latex: "(x < 0 ? \\sin(x) : \\text{random} \\cdot 10 - 5)" },
-            { exec: "(x < 0 ? -10 : (x % 1 === 0 ? 10 : 0))", latex: "(x < 0 ? -10 : (x \\mod 1 = 0 ? 10 : 0))" },
-            { exec: "(Math.abs(x % 5) < 1 ? 10 : -10)", latex: "(|x \\mod 5| < 1 ? 10 : -10)" },
-            { exec: "(x < -5 ? Math.random() * 5 : (x > 5 ? Math.sin(x) * 5 : 0))", latex: "(x < -5 ? \\text{random} \\cdot 5 : (x > 5 ? \\sin(x) \\cdot 5 : 0))" },
-            { exec: "(x < 0 ? Math.cos(x) * 5 : Math.sin(x) * 5)", latex: "(x < 0 ? \\cos(x) \\cdot 5 : \\sin(x) \\cdot 5)" },
+            { exec: "(x < 0 ? Math.sin(x) : Math.random() * 10 - 5)", latex: "(x < 0 ? \\sin(x) : \\text{random}\\cdot10 - 5)" },
+            { exec: "(Math.abs(Math.floor(x) % 5) < 1 ? 10 : -10)", latex: "(|\\lfloor x \\rfloor \\mod 5| < 1 ? 10 : -10)" },
+            { exec: "(x < -5 ? Math.random() * 5 : (x > 5 ? Math.sin(x)*5 : 0))", latex: "(x < -5 ? \\text{random}\\cdot5 : (x > 5 ? \\sin(x)\\cdot5 : 0))" },
+            { exec: "(x < 0 ? Math.cos(x)*5 : Math.sin(x)*5)", latex: "(x < 0 ? \\cos(x)\\cdot5 : \\sin(x)\\cdot5)" }
         ];
 
         const xMin = -10, xMax = 10, yMin = -10, yMax = 10;
 
-        // FUNZIONI DI DISEGNO (dal "nuovo" codice)
         function mapXtoCanvas(x, xMin, xMax, width) {
             return (x - xMin) / (xMax - xMin) * width;
         }
@@ -84,28 +80,27 @@
             const width = ctx.canvas.width;
             const height = ctx.canvas.height;
 
+            const xAxisY = mapYtoCanvas(0, yMin, yMax, height);
             ctx.strokeStyle = "#000";
             ctx.lineWidth = 1;
             ctx.beginPath();
-
-            // Asse X
-            const xAxisY = mapYtoCanvas(0, yMin, yMax, height);
             ctx.moveTo(0, xAxisY);
             ctx.lineTo(width, xAxisY);
+            // Frecce asse X
             ctx.lineTo(width - 10, xAxisY - 5);
             ctx.moveTo(width, xAxisY);
             ctx.lineTo(width - 10, xAxisY + 5);
 
-            // Asse Y
             const yAxisX = mapXtoCanvas(0, xMin, xMax, width);
             ctx.moveTo(yAxisX, height);
             ctx.lineTo(yAxisX, 0);
+            // Frecce asse Y
             ctx.lineTo(yAxisX - 5, 10);
             ctx.moveTo(yAxisX, 0);
             ctx.lineTo(yAxisX + 5, 10);
-
             ctx.stroke();
 
+            // Etichette
             ctx.font = "12px Arial";
             ctx.fillStyle = "#000";
             ctx.fillText("X", width - 15, xAxisY - 10);
@@ -141,7 +136,67 @@
             ctx.stroke();
         }
 
-        // Disegno Riemann (dal nuovo codice)
+        function calculateRiemannIntegral(func, xMin, xMax, n = 20000) {
+            const dx = (xMax - xMin) / n;
+            let integral = 0;
+            for (let i = 0; i < n; i++) {
+                const x_mid = xMin + (i + 0.5) * dx;
+                integral += func(x_mid) * dx;
+            }
+            return integral;
+        }
+
+        function calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, nX = 20000, nY = 2000) {
+            const dx = (xMax - xMin) / nX;
+            const xValues = [];
+            for (let i = 0; i < nX; i++) {
+                const x = xMin + i*dx;
+                xValues.push(func(x));
+            }
+
+            let fMax = -Infinity;
+            let fMin = Infinity;
+            for (let val of xValues) {
+                if (val > fMax) fMax = val;
+                if (val < fMin) fMin = val;
+            }
+
+            const positiveMax = Math.max(fMax, 0);
+            const negativeMin = Math.min(fMin, 0);
+
+            const dyPos = positiveMax > 0 ? positiveMax / nY : 0;
+            const dyNeg = negativeMin < 0 ? Math.abs(negativeMin) / nY : 0;
+
+            let integralPos = 0;
+            if (positiveMax > 0) {
+                for (let j = 0; j < nY; j++) {
+                    const t = j * dyPos; 
+                    let count = 0;
+                    for (let val of xValues) {
+                        if (val > t) count++;
+                    }
+                    const measure = count * dx; 
+                    integralPos += measure * dyPos; 
+                }
+            }
+
+            let integralNeg = 0;
+            if (negativeMin < 0) {
+                for (let j = 0; j < nY; j++) {
+                    const u = j * dyNeg; 
+                    let count = 0;
+                    for (let val of xValues) {
+                        if (val < -u) count++;
+                    }
+                    const measure = count * dx;
+                    integralNeg += measure * dyNeg;
+                }
+            }
+
+            const integral = integralPos - integralNeg;
+            return integral;
+        }
+
         function drawRiemannIntegration(ctx, func, xMin, xMax, yMin, yMax, numBars) {
             drawAxes(ctx, xMin, xMax, yMin, yMax);
             const width = ctx.canvas.width;
@@ -161,12 +216,12 @@
                 const cY = mapYtoCanvas(yValue, yMin, yMax, height);
                 const baseY = mapYtoCanvas(0, yMin, yMax, height);
 
-                ctx.strokeRect(cX, cY, cW, baseY - cY);
+                ctx.strokeRect(cX, Math.min(cY, baseY), cW, Math.abs(baseY - cY));
             }
         }
 
-        // Disegno Lebesgue (dal nuovo codice)
-        function drawLebesgueIntegration(ctx, func, xMin, xMax, yMin, yMax, nY = 50, nX = 200) {
+        // Funzione modificata per mostrare rettangoli più stretti senza cambiare il calcolo dell'integrale
+        function drawLebesgueIntegration(ctx, func, xMin, xMax, yMin, yMax, nY = 50, nX = 1000) {
             drawAxes(ctx, xMin, xMax, yMin, yMax);
             const width = ctx.canvas.width;
             const height = ctx.canvas.height;
@@ -196,7 +251,7 @@
                         const xCount = i - startIndex;
                         const xLen = xCount * dx;
                         const cX = mapXtoCanvas(xMin + startIndex*dx, xMin, xMax, width);
-                        const cW = xLen / (xMax - xMin) * width;
+                        const cW = (xLen / (xMax - xMin)) * width;
                         const cY = mapYtoCanvas(yEnd, yMin, yMax, height);
                         const cH = mapYtoCanvas(yStart, yMin, yMax, height) - cY;
                         ctx.strokeRect(cX, cY, cW, cH);
@@ -204,11 +259,12 @@
                     }
                 }
 
+                // Chiusura del segmento se necessario
                 if (startIndex !== null) {
                     const xCount = (nX + 1 - startIndex);
                     const xLen = xCount * dx;
                     const cX = mapXtoCanvas(xMin + startIndex*dx, xMin, xMax, width);
-                    const cW = xLen / (xMax - xMin) * width;
+                    const cW = (xLen / (xMax - xMin)) * width;
                     const cY = mapYtoCanvas(yEnd, yMin, yMax, height);
                     const cH = mapYtoCanvas(yStart, yMin, yMax, height) - cY;
                     ctx.strokeRect(cX, cY, cW, cH);
@@ -216,59 +272,7 @@
             }
         }
 
-        // METODI DI CALCOLO (ripristino del vecchio metodo di calcolo)
-        // Dal primo codice fornito inizialmente: 
-        // Metodo Riemann dal primo codice
-        function calculateRiemannIntegral(func, xMin, xMax, n = 10000) {
-            // Metodo dei rettangoli centrati
-            const dx = (xMax - xMin) / n;
-            let integral = 0;
-            for (let i = 0; i < n; i++) {
-                const x_mid = xMin + (i + 0.5) * dx;
-                integral += func(x_mid) * dx;
-            }
-            return integral;
-        }
-
-        // Metodo Lebesgue dal primo codice
-        function calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, nY = 1000, nX = 1000) {
-            // Approccio dal primo codice:
-            // 1. Campioniamo la funzione su nX punti.
-            // 2. Dividiamo l'intervallo [yMin, yMax] in nY intervalli.
-            // 3. Contiamo quanti x cadono in ogni intervallo di y.
-            // 4. Integrale = sum di (lunghezza in x * lunghezza in y) per ogni "fascia".
-
-            const dx = (xMax - xMin) / nX;
-            const dy = (yMax - yMin) / nY;
-
-            const samples = [];
-            let x_current = xMin;
-            for (let i = 0; i < nX; i++) {
-                samples.push(func(x_current));
-                x_current += dx;
-            }
-
-            let integral = 0;
-            for (let j = 0; j < nY; j++) {
-                const yStart = yMin + j * dy;
-                const yEnd = yStart + dy;
-
-                let count = 0;
-                for (let k = 0; k < nX; k++) {
-                    const val = samples[k];
-                    if (val >= yStart && val < yEnd) {
-                        count++;
-                    }
-                }
-                const xLength = count * dx; 
-                integral += xLength * dy;
-            }
-
-            return integral;
-        }
-
         function drawFunctionAndIntegrations(func, latexFunction, isContinuous) {
-            // Disegno funzione
             const functionCanvas = document.getElementById("function-canvas");
             const ctxFunction = functionCanvas.getContext("2d");
             drawGraph(ctxFunction, func, xMin, xMax, yMin, yMax);
@@ -286,22 +290,22 @@
             let riemannValueElem = document.getElementById("riemann-value");
             let lebesgueValueElem = document.getElementById("lebesgue-value");
 
-            // Disegno SEMPRE i due grafici
-            drawRiemannIntegration(ctxRiemann, func, xMin, xMax, yMin, yMax, 50);
-            drawLebesgueIntegration(ctxLebesgue, func, xMin, xMax, yMin, yMax, 50, 200);
-
             if (isContinuous) {
-                // Calcolo integrali con il vecchio metodo
-                const riemannResult = calculateRiemannIntegral(func, xMin, xMax, 10000).toFixed(4);
+                // Funzione continua: calcolo Riemann e Lebesgue
+                drawRiemannIntegration(ctxRiemann, func, xMin, xMax, yMin, yMax, 50);
+                const riemannResult = calculateRiemannIntegral(func, xMin, xMax, 20000).toFixed(4);
                 riemannValueElem.innerHTML = `Valore Integrazione (Riemann): ${riemannResult}`;
 
-                const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 1000, 1000).toFixed(4);
+                drawLebesgueIntegration(ctxLebesgue, func, xMin, xMax, yMin, yMax);
+                const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 20000, 2000).toFixed(4);
                 lebesgueValueElem.innerHTML = `Valore Integrazione (Lebesgue): ${lebesgueResult}`;
             } else {
-                // Funzione discontinua
+                // Funzione discontinua: mostra i rettangoli Riemann ma indica impossibilità
+                drawRiemannIntegration(ctxRiemann, func, xMin, xMax, yMin, yMax, 50);
                 riemannValueElem.innerHTML = "Impossibile calcolare il valore di integrazione (Riemann)";
 
-                const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 1000, 1000).toFixed(4);
+                drawLebesgueIntegration(ctxLebesgue, func, xMin, xMax, yMin, yMax);
+                const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 20000, 2000).toFixed(4);
                 lebesgueValueElem.innerHTML = `Valore Integrazione (Lebesgue): ${lebesgueResult}`;
             }
 

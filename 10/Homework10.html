@@ -33,17 +33,17 @@
 
     <div class="integration-container" style="display: none; margin-top: 20px;">
         <div class="integration-graph">
-            <h3>Integrazione alla Riemann</h3>
+            <h3>Riemann Integration</h3>
             <canvas id="riemann-canvas" width="500" height="300"></canvas>
             <p id="riemann-value" class="integration-result"></p>
         </div>
         <div class="integration-graph">
-            <h3>Integrazione di Lebesgue-Stieltjes</h3>
+            <h3>Lebesgue-Stieltjes Integration</h3>
             <canvas id="lebesgue-canvas" width="500" height="300"></canvas>
             <p id="lebesgue-value" class="integration-result"></p>
         </div>
-        
     </div>
+
     <div class="drive-link">
         <a href="https://drive.google.com/file/d/1b2yxfhId2XjQGsFam2_4Ouq00f6uzkA4/view?usp=sharing" target="_blank">Theoretical Notions</a>
     </div>
@@ -87,27 +87,29 @@
             const width = ctx.canvas.width;
             const height = ctx.canvas.height;
 
+            // X-axis
             const xAxisY = mapYtoCanvas(0, yMin, yMax, height);
             ctx.strokeStyle = "#000";
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, xAxisY);
             ctx.lineTo(width, xAxisY);
-            // Frecce asse X
+            // X-axis arrows
             ctx.lineTo(width - 10, xAxisY - 5);
             ctx.moveTo(width, xAxisY);
             ctx.lineTo(width - 10, xAxisY + 5);
 
+            // Y-axis
             const yAxisX = mapXtoCanvas(0, xMin, xMax, width);
             ctx.moveTo(yAxisX, height);
             ctx.lineTo(yAxisX, 0);
-            // Frecce asse Y
+            // Y-axis arrows
             ctx.lineTo(yAxisX - 5, 10);
             ctx.moveTo(yAxisX, 0);
             ctx.lineTo(yAxisX + 5, 10);
             ctx.stroke();
 
-            // Etichette
+            // Labels
             ctx.font = "12px Arial";
             ctx.fillStyle = "#000";
             ctx.fillText("X", width - 15, xAxisY - 10);
@@ -157,7 +159,7 @@
             const dx = (xMax - xMin) / nX;
             const xValues = [];
             for (let i = 0; i < nX; i++) {
-                const x = xMin + i*dx;
+                const x = xMin + i * dx;
                 xValues.push(func(x));
             }
 
@@ -227,7 +229,7 @@
             }
         }
 
-        // Funzione modificata per mostrare rettangoli più stretti senza cambiare il calcolo dell'integrale
+        // Modified function to show narrower bars without changing the integral calculation
         function drawLebesgueIntegration(ctx, func, xMin, xMax, yMin, yMax, nY = 50, nX = 1000) {
             drawAxes(ctx, xMin, xMax, yMin, yMax);
             const width = ctx.canvas.width;
@@ -238,7 +240,7 @@
 
             const xSamples = [];
             for (let i = 0; i <= nX; i++) {
-                xSamples[i] = func(xMin + i*dx);
+                xSamples[i] = func(xMin + i * dx);
             }
 
             ctx.strokeStyle = "rgba(150, 50, 250, 1)";
@@ -257,7 +259,7 @@
                     } else if (!inRange && startIndex !== null) {
                         const xCount = i - startIndex;
                         const xLen = xCount * dx;
-                        const cX = mapXtoCanvas(xMin + startIndex*dx, xMin, xMax, width);
+                        const cX = mapXtoCanvas(xMin + startIndex * dx, xMin, xMax, width);
                         const cW = (xLen / (xMax - xMin)) * width;
                         const cY = mapYtoCanvas(yEnd, yMin, yMax, height);
                         const cH = mapYtoCanvas(yStart, yMin, yMax, height) - cY;
@@ -266,11 +268,11 @@
                     }
                 }
 
-                // Chiusura del segmento se necessario
+                // Close the segment if needed
                 if (startIndex !== null) {
                     const xCount = (nX + 1 - startIndex);
                     const xLen = xCount * dx;
-                    const cX = mapXtoCanvas(xMin + startIndex*dx, xMin, xMax, width);
+                    const cX = mapXtoCanvas(xMin + startIndex * dx, xMin, xMax, width);
                     const cW = (xLen / (xMax - xMin)) * width;
                     const cY = mapYtoCanvas(yEnd, yMin, yMax, height);
                     const cH = mapYtoCanvas(yStart, yMin, yMax, height) - cY;
@@ -298,22 +300,22 @@
             let lebesgueValueElem = document.getElementById("lebesgue-value");
 
             if (isContinuous) {
-                // Funzione continua: calcolo Riemann e Lebesgue
+                // Continuous function: calculate both Riemann and Lebesgue integrals
                 drawRiemannIntegration(ctxRiemann, func, xMin, xMax, yMin, yMax, 50);
                 const riemannResult = calculateRiemannIntegral(func, xMin, xMax, 20000).toFixed(4);
-                riemannValueElem.innerHTML = `Valore Integrazione (Riemann): ${riemannResult}`;
+                riemannValueElem.innerHTML = `Integration Value (Riemann): ${riemannResult}`;
 
                 drawLebesgueIntegration(ctxLebesgue, func, xMin, xMax, yMin, yMax);
                 const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 20000, 2000).toFixed(4);
-                lebesgueValueElem.innerHTML = `Valore Integrazione (Lebesgue): ${lebesgueResult}`;
+                lebesgueValueElem.innerHTML = `Integration Value (Lebesgue): ${lebesgueResult}`;
             } else {
-                // Funzione discontinua: mostra i rettangoli Riemann ma indica impossibilità
+                // Discontinuous function: show Riemann rectangles but indicate impossibility
                 drawRiemannIntegration(ctxRiemann, func, xMin, xMax, yMin, yMax, 50);
-                riemannValueElem.innerHTML = "Impossibile calcolare il valore di integrazione (Riemann)";
+                riemannValueElem.innerHTML = "Impossible to calculate integration value (Riemann)";
 
                 drawLebesgueIntegration(ctxLebesgue, func, xMin, xMax, yMin, yMax);
                 const lebesgueResult = calculateLebesgueIntegral(func, xMin, xMax, yMin, yMax, 20000, 2000).toFixed(4);
-                lebesgueValueElem.innerHTML = `Valore Integrazione (Lebesgue): ${lebesgueResult}`;
+                lebesgueValueElem.innerHTML = `Integration Value (Lebesgue): ${lebesgueResult}`;
             }
 
             document.querySelector(".canvas-container").style.display = "block";

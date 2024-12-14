@@ -555,3 +555,25 @@ canvas {
     width: 50%;
     text-align: center;
 }
+
+.optional-link {
+    text-align: center;
+    margin-bottom: 10vh;
+}
+  
+.optional-link a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #309191;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.5s ease;
+}
+  
+.optional-link a:hover {
+    background-color: #2d8585;
+    transition: background-color 0.5s ease;
+}

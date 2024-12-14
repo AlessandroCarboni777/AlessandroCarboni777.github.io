@@ -1,3 +1,5 @@
+___
+
 ## Relative Frequency and Absolute Frequency
 
 - **Absolute Frequency**: is the number of times a given event or result occurs within a data set. It is an integer value greater than $0$:$$f_a=\text{counting\hspace{5px}\hspace{5px}events}$$![[Pasted image 20241015234234.png|500]]

@@ -3,7 +3,7 @@ ___
 ## Relative Frequency and Absolute Frequency
 
 - **Absolute Frequency**: is the number of times a given event or result occurs within a data set. It is an integer value greater than $0$:$$f_a=\text{counting\hspace{5px}\hspace{5px}events}$$![[Pasted image 20241015234234.png|500]]
-- **Relative Frequency**: is the absolute frequency of an event divided by the total number of observations. It is expressed as a fraction or percentage of the total, thus assuming values in the range $[0,1]$: $$f_r=\frac{\text{total\hspace{5px}number\hspace{5px}of\hspace{5px}observations}}{f_a​}$$![[Pasted image 20241015234258.png|500]]
+- **Relative Frequency**: is the absolute frequency of an event divided by the total number of observations. It is expressed as a fraction or percentage of the total, thus assuming values in the range $[0,1]$: $$f_r=\frac{f_a​}{\text{total\hspace{5px}number\hspace{5px}of\hspace{5px}observations}}$$![[Pasted image 20241015234258.png|500]]
 ___
 ## Deviation 
 
